@@ -1,0 +1,4 @@
+data/original/*
+data/tiles/*
+data/valid_tiles/*
+.env/*
