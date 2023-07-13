@@ -2,3 +2,4 @@ rasterio
 pandas
 tqdm
 geopandas
+GDAL
