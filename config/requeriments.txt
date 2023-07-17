@@ -2,4 +2,4 @@ rasterio
 pandas
 tqdm
 geopandas
-GDAL
+pillow
