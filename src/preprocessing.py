@@ -11,9 +11,9 @@ import rasterio
 from PIL import Image
 
 dst_image_dir = "data/tiles/"
+RES_MIN = 30
 
-def generate_coco_annotations(bounding_boxes, image_filenames, output_file):
-    annotations = []
+def generate_coco_annotations(image_filenames, train, output_file):
     categories = []
 
     # Crea la categoría "mamoa" en el archivo de anotaciones
@@ -24,33 +24,14 @@ def generate_coco_annotations(bounding_boxes, image_filenames, output_file):
     }
     categories.append(category)
 
-    # Genera las anotaciones para cada bounding box
-    for i, bbox in enumerate(bounding_boxes):
-        image_width, image_height = get_image_dimensions(image_filenames[i])
-        x, y, w, h = bbox
 
-        annotation = {
-            'id': i + 1,
-            'image_id': i + 1,
-            'category_id': 1,  # ID de la categoría "building"
-            'bbox': [x, y, w, h],
-            'area': w * h,
-            'iscrowd': 0
-        }
-
-        annotations.append(annotation)
-
-    # Crea el objeto COCO
-    coco_data = {
-        'images': [],
-        'annotations': annotations,
-        'categories': categories
-    }
-
+    images = []
+    annotations = []
+    
     # Agrega información de las imágenes al objeto COCO
     for i, image_filename in enumerate(image_filenames):
         image_id = i + 1
-        image_width, image_height = get_image_dimensions(image_filename)
+        image_width, image_height, bounds = get_image_dimensions(image_filename)
 
         image_info = {
             'id': image_id,
@@ -59,18 +40,40 @@ def generate_coco_annotations(bounding_boxes, image_filenames, output_file):
             'height': image_height
         }
 
-        coco_data['images'].append(image_info)
+        images.append(image_info)
+
+        # Genera las anotaciones para cada bounding box
+        lista = check_train(bounds, train)
+        for i, bbox in enumerate(lista):
+            left, bottom, right, top = bbox.bounds
+            w, h = max(abs(right-left), RES_MIN), max(abs(top-bottom), RES_MIN)
+            annotation = {
+                'id': i + 1,
+                'image_id': image_id,
+                'category_id': 1,  # ID de la categoría
+                'bbox': [int(left-bounds.left), int(bounds.top-top), w, h],
+                'area': w * h,
+                'iscrowd': 0
+            }
+            annotations.append(annotation)
 
     # Guarda el archivo de anotaciones en formato JSON
     with open(output_file, 'w') as f:
+        # Crea el objeto COCO
+        coco_data = {
+        'images': images,
+        'annotations': annotations,
+        'categories': categories
+        }
         json.dump(coco_data, f)
 
 def get_image_dimensions(image_filename):
     # Aquí puedes implementar la lógica para obtener las dimensiones de la imagen
     # Por ejemplo, usando PIL o cualquier otra biblioteca de imágenes
-    # image_width, image_height = ...
-    # return image_width, image_height
-    pass
+    dataset = rasterio.open(f"data/valid_tiles/{image_filename}")
+    image_width, image_height, bounds = dataset.width, dataset.height, dataset.bounds
+    return image_width, image_height, bounds
+    
 
 
 
@@ -80,9 +83,9 @@ def check_train(bounds, train):
     result = []
 
     for bbox in train:
-        x, y = bbox[0], bbox[1]
+        x, y = bbox.bounds[0], bbox.bounds[3]
         if bounds.left <= x <= bounds.right and bounds.bottom <= y <= bounds.top:
-            result += bbox
+            result.append(bbox)
 
     return result
 
@@ -92,7 +95,7 @@ def get_training(shapefile):
     gdf = gpd.read_file(shapefile)
     
     for x in gdf.values:
-        result.append(x[3].bounds)
+        result.append(x[3])
     return result
 
 
@@ -201,12 +204,15 @@ def mamoas_tiles(tif_name, shapefile, size=50):
 
     tile_paths = os.listdir(dst_image_dir)
 
+    valid_paths = []
     for each in tile_paths:
 
         img_tmp = rasterio.open(f"{dst_image_dir}/{each}")
        
         #print((img_tmp.width, img_tmp.height))
         rgb = img_tmp.read()
+
+        
               
         #https://rasterio.readthedocs.io/en/latest/quickstart.html
         
@@ -215,13 +221,16 @@ def mamoas_tiles(tif_name, shapefile, size=50):
 
         if (rgb.sum()) > 0 and len(bounding_boxes)>0:
             shutil.move(f"{dst_image_dir}{each}",f"data/valid_tiles/{each}")
-            convert_geotiff_to_tiff(f"data/valid_tiles/{each}", f"data/dl/{each}")
+            convert_geotiff_to_tiff(f"data/valid_tiles/{each}", f"data/data/{each}")
+            valid_paths.append(each)
+
+    generate_coco_annotations(valid_paths, training, "data/labels.json")        
 
 if __name__ == '__main__':
     #https://mmdetection.readthedocs.io/en/latest/user_guides/train.html#coco-annotation-format
     #https://mmdetection.readthedocs.io/en/v2.2.0/tutorials/new_dataset.html
     os.makedirs('data/tiles', exist_ok=True)
-    os.makedirs('data/dl', exist_ok=True)
+    os.makedirs('data/data', exist_ok=True)
     os.makedirs('data/valid_tiles', exist_ok=True)
     print(mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro.shp", size=200))
 
