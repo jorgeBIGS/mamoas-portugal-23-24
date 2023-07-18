@@ -11,7 +11,7 @@ import rasterio
 from PIL import Image
 
 dst_image_dir = "data/tiles/"
-RES_MIN = 30
+RES_MIN = 10
 
 def generate_coco_annotations(image_filenames, train, output_file):
     categories = []
@@ -235,10 +235,13 @@ def mamoas_tiles(tif_name, shapefile, size=50):
 if __name__ == '__main__':
     #https://mmdetection.readthedocs.io/en/latest/user_guides/train.html#coco-annotation-format
     #https://mmdetection.readthedocs.io/en/v2.2.0/tutorials/new_dataset.html
+    shutil.rmtree('data/tiles')
+    shutil.rmtree('data/data')
+    shutil.rmtree('data/valid_tiles')
     os.makedirs('data/tiles', exist_ok=True)
     os.makedirs('data/data', exist_ok=True)
     os.makedirs('data/valid_tiles', exist_ok=True)
-    print(mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados.shp", size=200))
+    print(mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-7p5.shp", size=200))
 
 
     
