@@ -27,6 +27,8 @@ def generate_coco_annotations(image_filenames, train, output_file):
 
     images = []
     annotations = []
+
+    id_annot = 1
     
     # Agrega información de las imágenes al objeto COCO
     for i, image_filename in enumerate(image_filenames):
@@ -44,17 +46,18 @@ def generate_coco_annotations(image_filenames, train, output_file):
 
         # Genera las anotaciones para cada bounding box
         lista = check_train(bounds, train)
-        for i, bbox in enumerate(lista):
+        for bbox in lista:
             left, bottom, right, top = bbox.bounds
             w, h = max(abs(right-left), RES_MIN), max(abs(top-bottom), RES_MIN)
             annotation = {
-                'id': i + 1,
+                'id': id_annot,
                 'image_id': image_id,
                 'category_id': 1,  # ID de la categoría
                 'bbox': [int(left-bounds.left), int(bounds.top-top), w, h],
                 'area': w * h,
                 'iscrowd': 0
             }
+            id_annot = id_annot + 1 
             annotations.append(annotation)
 
     # Guarda el archivo de anotaciones en formato JSON
@@ -78,16 +81,19 @@ def get_image_dimensions(image_filename):
 
 
 ## Probado
+def check_limit(bounds, x, y):
+    return bounds.left <= x <= bounds.right and bounds.bottom <= y <= bounds.top
 
 def check_train(bounds, train):
     result = []
 
     for bbox in train:
-        x, y = bbox.bounds[0], bbox.bounds[3]
-        if bounds.left <= x <= bounds.right and bounds.bottom <= y <= bounds.top:
+        xmin, ymin, xmax, ymax = bbox.bounds[0], bbox.bounds[1], bbox.bounds[2], bbox.bounds[3]
+        if check_limit(bounds, xmin, ymin) or check_limit(bounds, xmin, ymax) or check_limit(bounds, xmax, ymin) or check_limit(bounds, xmax, ymax):
             result.append(bbox)
 
     return result
+
 
 
 def get_training(shapefile):
@@ -232,7 +238,7 @@ if __name__ == '__main__':
     os.makedirs('data/tiles', exist_ok=True)
     os.makedirs('data/data', exist_ok=True)
     os.makedirs('data/valid_tiles', exist_ok=True)
-    print(mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro.shp", size=200))
+    print(mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados.shp", size=200))
 
 
     
