@@ -227,10 +227,20 @@ def mamoas_tiles(tif_name, shapefile, size=50):
 
         if (rgb.sum()) > 0 and len(bounding_boxes)>0:
             shutil.move(f"{dst_image_dir}{each}",f"data/valid_tiles/{each}")
-            convert_geotiff_to_tiff(f"data/valid_tiles/{each}", f"data/data/{each}")
             valid_paths.append(each)
 
-    generate_coco_annotations(valid_paths, training, "data/labels.json")        
+    for index, each in enumerate(valid_paths):
+        training_set = list(valid_paths)
+        training_set.remove(each)
+        test_set = list()
+        test_set.append(each)
+        os.makedirs(f"data/data/{index}/training", exist_ok=True)
+        os.makedirs(f"data/data/{index}/test", exist_ok=True)
+        convert_geotiff_to_tiff(f"data/valid_tiles/{each}", f"data/data/{index}/test/{each}")
+        generate_coco_annotations(test_set, training, f"data/data/{index}/test/labels.json")
+        for image in training_set:
+            convert_geotiff_to_tiff(f"data/valid_tiles/{image}", f"data/data/{index}/training/{image}")
+        generate_coco_annotations(training_set, training, f"data/data/{index}/training/labels.json")        
 
 if __name__ == '__main__':
     #https://mmdetection.readthedocs.io/en/latest/user_guides/train.html#coco-annotation-format
@@ -241,7 +251,7 @@ if __name__ == '__main__':
     os.makedirs('data/tiles', exist_ok=True)
     os.makedirs('data/data', exist_ok=True)
     os.makedirs('data/valid_tiles', exist_ok=True)
-    print(mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-7p5.shp", size=200))
+    print(mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados.shp", size=200))
 
 
     
