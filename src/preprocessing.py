@@ -11,7 +11,11 @@ import rasterio
 from PIL import Image
 
 dst_image_dir = "data/tiles/"
-RES_MIN = 10
+dst_valid_tiles = "data/valid_tiles/"
+dst_data_annotation = "data/data/annotations/"
+dst_data_loo_cv = "data/data/annotations/loo_cv/"
+dst_data_images = "data/data/images/"
+RES_MIN = 5
 
 def generate_coco_annotations(image_filenames, train, output_file):
     categories = []
@@ -73,12 +77,9 @@ def generate_coco_annotations(image_filenames, train, output_file):
 def get_image_dimensions(image_filename):
     # Aquí puedes implementar la lógica para obtener las dimensiones de la imagen
     # Por ejemplo, usando PIL o cualquier otra biblioteca de imágenes
-    dataset = rasterio.open(f"data/valid_tiles/{image_filename}")
+    dataset = rasterio.open(f"{dst_valid_tiles}{image_filename}")
     image_width, image_height, bounds = dataset.width, dataset.height, dataset.bounds
     return image_width, image_height, bounds
-    
-
-
 
 ## Probado
 def check_limit(bounds, x, y):
@@ -94,8 +95,6 @@ def check_train(bounds, train):
 
     return result
 
-
-
 def get_training(shapefile):
     result = []
     gdf = gpd.read_file(shapefile)
@@ -103,10 +102,6 @@ def get_training(shapefile):
     for x in gdf.values:
         result.append(x[3])
     return result
-
-
-
-   
 
 def convert_geotiff_to_tiff(input_path, output_path):
     """
@@ -137,10 +132,6 @@ def convert_geotiff_to_tiff(input_path, output_path):
     # Guarda los datos en el nuevo archivo TIFF sin información geoespacial
     with rasterio.open(output_path, 'w', **profile) as dst:
         dst.write(data)
-
-
-
-
 
 # adapted from https://fractaldle.medium.com/satellite-images-deep-learning-spacenet-building-segmentation-a5d145a81c33
 def get_tile_name_path(dst_dir:str, index:int):
@@ -211,6 +202,7 @@ def mamoas_tiles(tif_name, shapefile, size=50):
     tile_paths = os.listdir(dst_image_dir)
 
     valid_paths = []
+    
     for each in tile_paths:
 
         img_tmp = rasterio.open(f"{dst_image_dir}/{each}")
@@ -226,32 +218,34 @@ def mamoas_tiles(tif_name, shapefile, size=50):
         
 
         if (rgb.sum()) > 0 and len(bounding_boxes)>0:
-            shutil.move(f"{dst_image_dir}{each}",f"data/valid_tiles/{each}")
+            shutil.move(f"{dst_image_dir}{each}",f"{dst_valid_tiles}{each}")
+            convert_geotiff_to_tiff(f"{dst_valid_tiles}{each}", f"{dst_data_images}{each}")
             valid_paths.append(each)
 
+
+    generate_coco_annotations(valid_paths, training, f"{dst_data_annotation}all.json")
     for index, each in enumerate(valid_paths):
         training_set = list(valid_paths)
         training_set.remove(each)
         test_set = list()
         test_set.append(each)
-        os.makedirs(f"data/data/{index}/training", exist_ok=True)
-        os.makedirs(f"data/data/{index}/test", exist_ok=True)
-        convert_geotiff_to_tiff(f"data/valid_tiles/{each}", f"data/data/{index}/test/{each}")
-        generate_coco_annotations(test_set, training, f"data/data/{index}/test/labels.json")
-        for image in training_set:
-            convert_geotiff_to_tiff(f"data/valid_tiles/{image}", f"data/data/{index}/training/{image}")
-        generate_coco_annotations(training_set, training, f"data/data/{index}/training/labels.json")        
+        generate_coco_annotations(test_set, training, f"{dst_data_loo_cv}test{index}.json")
+        generate_coco_annotations(training_set, training, f"{dst_data_loo_cv}training{index}.json")   
+             
 
 if __name__ == '__main__':
     #https://mmdetection.readthedocs.io/en/latest/user_guides/train.html#coco-annotation-format
     #https://mmdetection.readthedocs.io/en/v2.2.0/tutorials/new_dataset.html
-    shutil.rmtree('data/tiles')
-    shutil.rmtree('data/data')
-    shutil.rmtree('data/valid_tiles')
+    shutil.rmtree('data/tiles', ignore_errors=True)
+    shutil.rmtree('data/data', ignore_errors=True)
+    shutil.rmtree('data/valid_tiles', ignore_errors=True)
+    os.makedirs(f"data/data/images", exist_ok=True)
+    os.makedirs(f"data/data/annotations", exist_ok=True)
+    os.makedirs(f"data/data/annotations/loo_cv", exist_ok=True)
     os.makedirs('data/tiles', exist_ok=True)
     os.makedirs('data/data', exist_ok=True)
     os.makedirs('data/valid_tiles', exist_ok=True)
-    print(mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados.shp", size=200))
+    mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-7p5.shp", size=200)
 
 
     
