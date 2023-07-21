@@ -53,11 +53,17 @@ def generate_coco_annotations(image_filenames, train, output_file):
         for bbox in lista:
             left, bottom, right, top = bbox.bounds
             w, h = max(abs(right-left), RES_MIN), max(abs(top-bottom), RES_MIN)
+           
+            posX = min(max(int(left-bounds.left), 0), image_width)
+            posY = min(max(int(bounds.top-top), 0), image_height)
+
+            if posX + w > image_width: w = image_width - posX 
+            if posY + h > image_height: h = image_height - posY
             annotation = {
                 'id': id_annot,
                 'image_id': image_id,
                 'category_id': 1,  # ID de la categoría
-                'bbox': [int(left-bounds.left), int(bounds.top-top), w, h],
+                'bbox': [posX, posY, w, h],
                 'area': w * h,
                 'iscrowd': 0
             }
