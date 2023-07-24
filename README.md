@@ -1,3 +1,22 @@
+## Metodología para generar detector de “mamoas”:
+
+Vamos a seguir principalmente un tutorial bastante reciente en python: https://medium.com/@kendallfrimodig/efficient-object-detection-within-satellite-imagery-using-python-85331d71ff69 y que hemos testeado en Ubuntu 22:
+
+1. Lo primero es instalar QGIS y cargar las distintas capas raster (mdt, imágenes) y vectoriales (localización de mamoas,etc.)
+2. Lo siguiente es Vectorial > Herramientas de geoproceso y seleccionar Buffer y generar una capa nueva con mini-imágenes de 1000x1000 metros u otra resolucion similar a partir de las localizaciones de mamoas para reducir a las zonas interesantes.
+3. Lo siguiente es ir a Raster>Extraccion> Cortar con máscara usando el layer previamente generado. Eso hará que se genere para cada capa de entrada los “tiles” que se asocian con nuestras imágenes en una imagen cuadrada que los englobará a todos y nos ahorrará zonas que no tienen datos de mamoas.
+4. Lo siguiente que toca es montar la combinación de cada raster previo. Para ello, vamos a Raster>Miscelanea>Combinar y metemos las bandas que hemos generado previamente. En principio, para entrenar las redes neuronales solo usaremos 3 bandas (RGB) por lo que si usamos imágenes con más bandas, habrá que generar falsas bandas en gris (yo he usado la ecuación Y' = 0.299 * R' + 0.587 * G' + 0.114 * B'). Es lo que he hecho con las 3 primeras bandas del linear relief model (el alpha lo he dejado fuera). 
+
+5. A partir de ahora, cargamos el proyecto base en visual code (debe contener la imagen combinada previa)  y pasamos a python usando el repositorio (https://github.com/jorgeBIGS/mamoas-portugal-23-24.git):
+
+- Crear environment: python -m venv .env
+- source ,/env/bin/activate
+- pip install -r config/requirements.txt
+
+6. Nos aseguramos que existe una carpeta “data” con una combinación de 3 rasters (combinacion.tif) dentro. Ejecutamos el preprocesado y el resultado debe ser un conjunto de carpetas con las imágenes que contienes mamoas y un conjunto de ficheros json que nos ayudarán a entrenar las redes en formato COCO. Ojo que el fichero shape solo tenía POINTS de entrenamiento, cuando hubiésemos necesitado rectángulos. He generado varios shapes con cuadrados falsos de 30x30, 15x15 y 60x60  metros que potencialmente contendría las mamoas para poder hacer pruebas. Se generan en QGIS igual que en el paso 2 pero con valores 7.5,15 y 30 de “radio”.
+
+Las carpetas anteriores nos servirán para entrenar y testear cada arquitectura de redes. El siguiente paso es pasar directamente a trabajar con la librería de detección de objetos.
+
 We are going to use the mmdetection library for object detection https://github.com/open-mmlab/mmdetection. 
 You can find several tutorials on the documentation page (https://mmdetection.readthedocs.io/en/latest/)
 
