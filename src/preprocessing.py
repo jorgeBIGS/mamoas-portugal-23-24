@@ -50,7 +50,7 @@ def generate_coco_annotations(image_filenames, train, output_file):
             'height': image_height
         }
 
-        
+        images.append(image_info)
 
         # Genera las anotaciones para cada bounding box
         lista = check_train(bounds, train)
@@ -238,7 +238,7 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
 
 
     generate_coco_annotations(valid_paths, training, f"{dst_data_annotation}all.json")
-
+    
     for index, each in enumerate(valid_paths):
         training_set = list(valid_paths)
         training_set.remove(each)
