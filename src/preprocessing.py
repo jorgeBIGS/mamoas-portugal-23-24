@@ -17,6 +17,10 @@ dst_data_loo_cv = "data/data/annotations/loo_cv/"
 dst_data_images = "data/data/images/"
 RES_MIN = 5
 
+def check_included(bboxes, bbox):
+    result = [a['bbox'] for a in bboxes]
+    return len(result)==0 or  bbox['bbox'] not in result
+
 def generate_coco_annotations(image_filenames, train, output_file):
     categories = []
 
@@ -67,8 +71,10 @@ def generate_coco_annotations(image_filenames, train, output_file):
                 'area': w * h,
                 'iscrowd': 0
             }
-            id_annot = id_annot + 1 
-            annotations.append(annotation)
+            if check_included(annotations, annotation): 
+                annotations.append(annotation)
+                id_annot = id_annot + 1 
+            
 
     # Guarda el archivo de anotaciones en formato JSON
     with open(output_file, 'w') as f:
@@ -91,12 +97,12 @@ def get_image_dimensions(image_filename):
 def check_limit(bounds, x, y):
     return bounds.left <= x <= bounds.right and bounds.bottom <= y <= bounds.top
 
-def check_train(bounds, train):
+def check_train(tile_bounds, train):
     result = []
 
     for bbox in train:
         xmin, ymin, xmax, ymax = bbox.bounds[0], bbox.bounds[1], bbox.bounds[2], bbox.bounds[3]
-        if check_limit(bounds, xmin, ymin) or check_limit(bounds, xmin, ymax) or check_limit(bounds, xmax, ymin) or check_limit(bounds, xmax, ymax):
+        if check_limit(tile_bounds, xmin, ymin) and check_limit(tile_bounds, xmin, ymax) and check_limit(tile_bounds, xmax, ymin) and check_limit(tile_bounds, xmax, ymax):
             result.append(bbox)
 
     return result
@@ -173,37 +179,41 @@ def get_tile_profile(parent_tif:rasterio.io.DatasetReader, pixel_x:int, pixel_y:
             )
     return profile
 
-def generate_tiles(tif:rasterio.io.DatasetReader, size:int, dst_dir:str):
+def generate_tiles(tif:rasterio.io.DatasetReader, size:int, overlap: list[int], dst_dir:str):
     result = []
     i = 0
-    for x in tqdm(range(0, tif.width, size)):
-        for y in range(0, tif.height, size):
-            # creating the tile specific profile
-            profile = get_tile_profile(tif, x, y)
-            # extracting the pixel data (couldnt understand as i dont think thats the correct way to pass the argument)
-            tile_data = tif.read(window=((y, y + size), (x, x + size)),
-                                 boundless=True, fill_value=profile['nodata'])[:3]
-            i+=1
-            dst_name, dst_tile_path = get_tile_name_path(dst_dir, i)
-            c, h, w = tile_data.shape
-            profile.update(
-                height=h,
-                width=w,
-                count=c,
-                dtype=tile_data.dtype,
-            )
-            with rasterio.open(dst_tile_path, "w", **profile) as dst:
-                dst.write(tile_data)
-                result += dst_tile_path
+    for x_over in overlap:
+        for y_over in overlap:
+            for x in tqdm(range(0, tif.width, size)):
+                for y in range(0, tif.height, size):
+                    x = x + x_over
+                    y = y + y_over
+                    # creating the tile specific profile
+                    profile = get_tile_profile(tif, x, y)
+                    # extracting the pixel data (couldnt understand as i dont think thats the correct way to pass the argument)
+                    tile_data = tif.read(window=((y, y + size), (x, x + size)),
+                                        boundless=True, fill_value=profile['nodata'])[:3]
+                    i+=1
+                    dst_name, dst_tile_path = get_tile_name_path(dst_dir, i)
+                    c, h, w = tile_data.shape
+                    profile.update(
+                        height=h,
+                        width=w,
+                        count=c,
+                        dtype=tile_data.dtype,
+                    )
+                    with rasterio.open(dst_tile_path, "w", **profile) as dst:
+                        dst.write(tile_data)
+                        result += dst_tile_path
     return result
 
-def mamoas_tiles(tif_name, shapefile, size=50):
+def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
 
     training = get_training(shapefile)
 
     img = rasterio.open(tif_name)
 
-    generate_tiles(img, size, dst_image_dir)
+    generate_tiles(img, size, overlap, dst_image_dir)
 
     tile_paths = os.listdir(dst_image_dir)
 
@@ -211,9 +221,8 @@ def mamoas_tiles(tif_name, shapefile, size=50):
     
     for each in tile_paths:
 
-        img_tmp = rasterio.open(f"{dst_image_dir}/{each}")
-       
-        #print((img_tmp.width, img_tmp.height))
+        img_tmp = rasterio.open(f"{dst_image_dir}{each}")
+
         rgb = img_tmp.read()
 
         
@@ -251,7 +260,8 @@ if __name__ == '__main__':
     os.makedirs('data/tiles', exist_ok=True)
     os.makedirs('data/data', exist_ok=True)
     os.makedirs('data/valid_tiles', exist_ok=True)
-    mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-7p5.shp", size=200)
+    #mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-15.shp", size=200, overlap = [0, 100])
+    mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-7p5.shp", size=200, overlap = [0, 100])
 
 
     
