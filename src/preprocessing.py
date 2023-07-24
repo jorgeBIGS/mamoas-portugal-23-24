@@ -50,7 +50,7 @@ def generate_coco_annotations(image_filenames, train, output_file):
             'height': image_height
         }
 
-        images.append(image_info)
+        
 
         # Genera las anotaciones para cada bounding box
         lista = check_train(bounds, train)
@@ -71,9 +71,8 @@ def generate_coco_annotations(image_filenames, train, output_file):
                 'area': w * h,
                 'iscrowd': 0
             }
-            if check_included(annotations, annotation): 
-                annotations.append(annotation)
-                id_annot = id_annot + 1 
+            annotations.append(annotation)
+            id_annot = id_annot + 1 
             
 
     # Guarda el archivo de anotaciones en formato JSON
@@ -239,6 +238,7 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
 
 
     generate_coco_annotations(valid_paths, training, f"{dst_data_annotation}all.json")
+
     for index, each in enumerate(valid_paths):
         training_set = list(valid_paths)
         training_set.remove(each)
@@ -260,8 +260,8 @@ if __name__ == '__main__':
     os.makedirs('data/tiles', exist_ok=True)
     os.makedirs('data/data', exist_ok=True)
     os.makedirs('data/valid_tiles', exist_ok=True)
-    #mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-15.shp", size=200, overlap = [0, 100])
-    mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-7p5.shp", size=200, overlap = [0, 100])
+    mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-15.shp", size=200, overlap = [0, 100])
+    #mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-7p5.shp", size=200, overlap = [0, 100])
 
 
     
