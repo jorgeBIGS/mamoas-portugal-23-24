@@ -17,6 +17,8 @@ Vamos a seguir principalmente un tutorial bastante reciente en python: https://m
 
 Las carpetas anteriores nos servirán para entrenar y testear cada arquitectura de redes. El siguiente paso es pasar directamente a trabajar con la librería de detección de objetos.
 
+## Object Detection with MMDetection
+
 We are going to use the mmdetection library for object detection https://github.com/open-mmlab/mmdetection. 
 You can find several tutorials on the documentation page (https://mmdetection.readthedocs.io/en/latest/)
 
@@ -25,13 +27,14 @@ Here I am just going to focus on the basics so that you can replicate what we ha
 We are just going to use existing object detection models, and for that we just need to put the dataset into the specified format and modify a couple of configuration files.
 
 
-1) First we need to install the library
-INSTALL https://mmdetection.readthedocs.io/en/latest/get_started.html
+1) First we need to install the library https://mmdetection.readthedocs.io/en/latest/get_started.html
+```
 •	Create Python virtual env to install required libraries
 •	Install PyTorch following official instructions, depending on installed CUDA Version
 •	pip install -U openmim
 •	mim install mmengine
 •	mim install "mmcv>=2.0.0"
+
 
 Then, go inside the library folder
 cd mmdetection
@@ -39,7 +42,7 @@ pip install -v -e .
 # "-v" means verbose, or more output
 # "-e" means installing a project in editable mode,
 # thus any local modifications made to the code will take effect without reinstallation.
-
+```
 
 You can verify the installation following this:
 https://mmdetection.readthedocs.io/en/latest/get_started.html#verify-the-installation
@@ -59,7 +62,7 @@ Moreover, you can see a loo_cv folder, which corresponds to the .json files that
 We have already generated two datasets (with bounding boxes of 15x15 and 30x30 pixels) that can be used.
 
 
-2) Once we have the dataset ready, it is time to configure an existing model so that it can be used with our dataset.
+3) Once we have the dataset ready, it is time to configure an existing model so that it can be used with our dataset.
 All the files related to the model configuration are placed inside the configs/ folder.
 In our case, we have placed the necessary files in configs/mamoas folder.
 Basically, we have two config python files, one that will point to the dataset we want to use, and another one that adapts an existing model to our particular problem.
@@ -88,7 +91,7 @@ The other things (anchor_generator, score_thr, etc.) are just some hyper-paramet
 With these two config files, we have everything necessary to carry out experiments.
 
 
-3) Train/Test models using the scripts provided in scripts_mamoas/ folder
+4) Train/Test models using the scripts provided in scripts_mamoas/ folder
 You will find two files: train_test.sh (useful commands to get used to the library) and loo_validation.py(when everything is clear, carry out final LOO-CV experiments)
 
 
