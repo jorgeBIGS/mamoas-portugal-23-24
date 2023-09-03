@@ -260,8 +260,9 @@ if __name__ == '__main__':
     os.makedirs('data/tiles', exist_ok=True)
     os.makedirs('data/data', exist_ok=True)
     os.makedirs('data/valid_tiles', exist_ok=True)
-    mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-15.shp", size=200, overlap = [0, 100])
+    #mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-15.shp", size=200, overlap = [0, 100])
     #mamoas_tiles("data/combinacion.tif", "data/original/Mamoas-Laboreiro-cuadrados-7p5.shp", size=200, overlap = [0, 100])
+    mamoas_tiles("data/combination.tif", "data/original/Mamoas-Laboreiro-squared-30.shp", size=200, overlap = [0, 100])
 
 
     

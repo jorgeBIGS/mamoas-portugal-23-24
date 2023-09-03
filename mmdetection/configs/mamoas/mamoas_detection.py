@@ -1,5 +1,5 @@
 dataset_type = 'CocoDataset'
-data_root = 'data/mamoas-30/'
+data_root = 'data/mamoas-15/'
 metainfo = {
     'classes': ('mamoa', ),
     'palette': [

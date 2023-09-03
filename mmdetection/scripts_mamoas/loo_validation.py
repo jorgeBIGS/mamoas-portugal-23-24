@@ -4,34 +4,42 @@ import pickle
 import json
 import shutil
 
-data_folders=["data/mamoas-15/","data/mamoas-30/"]
+data_folders=["data/mamoas-15/"]
 
-model="faster_rcnn"
+model="retinanet"
 # Config file
 config_file=f"configs/mamoas/{model}.py"
 
+# Specify the GPU you want to use (0, 1, etc.)
+# gpu_id = 0
+# Set the CUDA_VISIBLE_DEVICES environment variable
+# os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
 for data_root in data_folders:
     size_bbox=data_root.split("-")[-1].replace("/","")
     work_dir=f"results_loo_{size_bbox}/{model}/" # Work dir (path where checkpoints and predictions will be saved)
     num_folds = int(len(os.listdir(f"{data_root}/annotations/loo_cv/"))/2)
     for i in range(num_folds):
+        print("-----------------------------------")
+        print(f"Second Loop for data_root = {data_root} with num_folds = {i}")
+
         work_dir_fold=f"{work_dir}folds/{i}"
         ann_train=f"annotations/loo_cv/training{i}.json"
         ann_val=f"annotations/loo_cv/test{i}.json"
         
         # Train model
         # Note that train/val data_root and ann_file should be changed depending on the dataset(15/30/60) [This is to avoid having three diferent .py config files, we can modify the fields as script arguments]
-        # Logs and checkpoint are saved in folds/#NUM_FOLD#
+        # Logs and checkpoint are saved in folds/#NUM_FOLD#    
         subprocess.run(["python", "tools/train.py", config_file, 
-                    f"--work-dir={work_dir_fold}", 
-                    "--cfg-options", 
-                    f"train_dataloader.dataset.data_root={data_root}",
-                    f"train_dataloader.dataset.ann_file={ann_train}",
-                    f"val_dataloader.dataset.data_root={data_root}",
-                    f"val_dataloader.dataset.ann_file={ann_val}",
-                    f"val_evaluator.ann_file={data_root}{ann_val}",
-                    ])
+                        f"--work-dir={work_dir_fold}", 
+                        "--cfg-options", 
+                        f"train_dataloader.dataset.data_root={data_root}",
+                        f"train_dataloader.dataset.ann_file={ann_train}",
+                        f"val_dataloader.dataset.data_root={data_root}",
+                        f"val_dataloader.dataset.ann_file={ann_val}",
+                        f"val_evaluator.ann_file={data_root}{ann_val}",
+                        ])
+
         
         # Get last checkpoint for testing
         ckpt_file = sorted(glob(f"{work_dir_fold}/*.pth"))[-1]
@@ -83,7 +91,12 @@ for data_root in data_folders:
                                 f"test_dataloader.dataset.ann_file=annotations/all.json",
                                 f"val_evaluator.ann_file={data_root}annotations/all.json"]
                                 ,capture_output=True, text=True).stdout
+
+    print("-----------------------------------")
+    print("eval_results:")
     print(eval_results)
+    print("-----------------------------------")
+
     eval_results_file = open(f"{work_dir}results.log", "w")
     eval_results_file.write(eval_results)
     eval_results_file.close()

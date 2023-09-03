@@ -1,5 +1,6 @@
 _base_ = [
-    '../_base_/schedules/schedule_2x.py', '../_base_/default_runtime.py',
+    '../_base_/schedules/schedule_2x.py', 
+    '../_base_/default_runtime.py',
     'mamoas_detection.py'
 ]
 
@@ -102,7 +103,8 @@ optim_wrapper = dict(
     optimizer=dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0005),
     clip_grad=dict(max_norm=35, norm_type=2))
 
-train_cfg = dict(max_epochs=273, val_interval=7)
+#train_cfg = dict(max_epochs=273, val_interval=7)
+train_cfg = dict(max_epochs=24, val_interval=7)
 
 # optimizer
 optim_wrapper = dict(
@@ -116,7 +118,7 @@ param_scheduler = [
     dict(type='MultiStepLR', by_epoch=True, milestones=[218, 246], gamma=0.1)
 ]
 
-default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=7))
+default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))
 
 # NOTE: `auto_scale_lr` is for automatically scaling LR,
 # USER SHOULD NOT CHANGE ITS VALUES.
