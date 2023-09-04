@@ -30,10 +30,10 @@ model = dict(
         out_channels=[1024, 512, 256],
         anchor_generator=dict(
             type='YOLOAnchorGenerator',
-            # base_sizes=[[(116, 90), (156, 198), (373, 326)],
-            #             [(30, 61), (62, 45), (59, 119)],
-            #             [(10, 13), (16, 30), (33, 23)]],
-            base_sizes=[[(30, 2), (9, 64), (6, 138)], [(19, 112), (60, 60), (176, 23)], [(100, 66), (176, 73), (131, 143)]], # Optimized anchor
+            base_sizes=[[(116, 90), (156, 198), (373, 326)], # The anchor sizes needs to be adjusted depending on the size of the images and bboxes. These values are the default and seem to work, but there is a script in tools/analysis_tools/optimize_anchors.py to help setting these values accordingly.
+                        [(30, 61), (62, 45), (59, 119)],
+                        [(10, 13), (16, 30), (33, 23)]],
+            # base_sizes=[[(30, 2), (9, 64), (6, 138)], [(19, 112), (60, 60), (176, 23)], [(100, 66), (176, 73), (131, 143)]], # Optimized anchor
             strides=[32, 16, 8]),
         bbox_coder=dict(type='YOLOBBoxCoder'),
         featmap_strides=[32, 16, 8],
@@ -104,7 +104,7 @@ optim_wrapper = dict(
     clip_grad=dict(max_norm=35, norm_type=2))
 
 #train_cfg = dict(max_epochs=273, val_interval=7)
-train_cfg = dict(max_epochs=24, val_interval=7)
+train_cfg = dict(max_epochs=24, val_interval=1)
 
 # optimizer
 optim_wrapper = dict(
@@ -112,11 +112,20 @@ optim_wrapper = dict(
     optimizer=dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0005),
     clip_grad=dict(max_norm=35, norm_type=2))
 
-# # learning policy
+# learning policy
+
 param_scheduler = [
-    dict(type='LinearLR', start_factor=0.1, by_epoch=False, begin=0, end=2000),
-    dict(type='MultiStepLR', by_epoch=True, milestones=[218, 246], gamma=0.1)
+    dict(
+        type='LinearLR', start_factor=0.001, by_epoch=False, begin=0, end=500),
+    dict(
+        type='MultiStepLR',
+        begin=0,
+        end=24,
+        by_epoch=True,
+        milestones=[16, 22],
+        gamma=0.1)
 ]
+
 
 default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))
 
