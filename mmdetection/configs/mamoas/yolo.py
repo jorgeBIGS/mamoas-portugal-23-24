@@ -34,6 +34,16 @@ model = dict(
                         [(30, 61), (62, 45), (59, 119)],
                         [(10, 13), (16, 30), (33, 23)]],
             # base_sizes=[[(30, 2), (9, 64), (6, 138)], [(19, 112), (60, 60), (176, 23)], [(100, 66), (176, 73), (131, 143)]], # Optimized anchor
+            
+            #mamoas-30
+            #base_sizes=[[[61, 124], [92, 88], [182, 117]],
+            #            [[74, 61], [56, 90], [182, 35]],
+            #            [[30, 30], [137, 16], [28, 104]]],
+            #mamoas-15
+            #base_sizes=[
+            #    [[101, 118], [160, 129], [196, 106]],
+            #    [[29, 99], [80, 36], [36, 90]],
+            #    [[15, 15], [24, 67], [194, 11]]],
             strides=[32, 16, 8]),
         bbox_coder=dict(type='YOLOBBoxCoder'),
         featmap_strides=[32, 16, 8],
@@ -113,7 +123,6 @@ optim_wrapper = dict(
     clip_grad=dict(max_norm=35, norm_type=2))
 
 # learning policy
-
 param_scheduler = [
     dict(
         type='LinearLR', start_factor=0.001, by_epoch=False, begin=0, end=500),
@@ -125,7 +134,6 @@ param_scheduler = [
         milestones=[16, 22],
         gamma=0.1)
 ]
-
 
 default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))
 

@@ -4,16 +4,16 @@ import pickle
 import json
 import shutil
 
-data_folders=["data/mamoas-15/"]
+data_folders=["data/mamoas-30/"]
 
-model="retinanet"
+model="dynamic_rcnn"
 # Config file
 config_file=f"configs/mamoas/{model}.py"
 
 # Specify the GPU you want to use (0, 1, etc.)
-# gpu_id = 0
+#gpu_id = 1
 # Set the CUDA_VISIBLE_DEVICES environment variable
-# os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+#os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
 for data_root in data_folders:
     size_bbox=data_root.split("-")[-1].replace("/","")

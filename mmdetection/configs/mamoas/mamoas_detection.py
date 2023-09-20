@@ -1,5 +1,5 @@
 dataset_type = 'CocoDataset'
-data_root = 'data/mamoas-15/'
+data_root = 'data/mamoas-30/'
 metainfo = {
     'classes': ('mamoa', ),
     'palette': [
@@ -19,7 +19,7 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
-    # dict(type='Resize', scale=(1333, 800), keep_ratio=True),
+    # dict(type='Resize', scopycale=(1333, 800), keep_ratio=True),
     dict(type='Resize', scale=(200, 200), keep_ratio=True),
     # If you don't have a gt annotation, delete the pipeline
     dict(type='LoadAnnotations', with_bbox=True),
