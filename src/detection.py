@@ -2,10 +2,11 @@ from mmengine import Config
 from mmengine.runner import set_random_seed
 from mmengine.runner import Runner
 
-TRAINING_DATA_ROOT = 'data/coco'
-MODEL = "retinanet"
+TRAINING_DATA_ROOT = 'data/data'
+MODEL = "faster_rcnn"
+MODEL_CONFIG = f"mmdetection/configs/mamoas/{MODEL}.py"
 
-cfg = Config.fromfile('mmdetection/configs/mamoas/{MODEL}.py')
+cfg = Config.fromfile(MODEL_CONFIG)
 # Modify dataset classes and color
 cfg.metainfo = {
     'CLASSES': ('mamoa', ),
@@ -19,16 +20,15 @@ cfg.data_root = TRAINING_DATA_ROOT
 
 cfg.train_dataloader.dataset.ann_file = 'annotations/all.json'
 cfg.train_dataloader.dataset.data_root = cfg.data_root
-cfg.train_dataloader.dataset.data_prefix.img = 'data/'
+cfg.train_dataloader.dataset.data_prefix.img = 'images/'
 cfg.train_dataloader.dataset.metainfo = cfg.metainfo
 
-cfg.val_dataloader.dataset.ann_file = 'annotations/all.json'
-cfg.val_dataloader.dataset.data_root = cfg.data_root
-cfg.val_dataloader.dataset.data_prefix.img = 'data/'
-cfg.val_dataloader.dataset.metainfo = cfg.metainfo
-
-cfg.test_dataloader = cfg.val_dataloader
-
+#cfg.val_dataloader.dataset.ann_file = 'annotations/all.json'
+#cfg.val_dataloader.dataset.data_root = cfg.data_root
+#cfg.val_dataloader.dataset.data_prefix.img = 'images/'
+#cfg.val_dataloader.dataset.metainfo = cfg.metainfo
+cfg.val_dataloader = cfg.train_dataloader
+cfg.test_dataloader = cfg.train_dataloader
 
 # Modify metric config
 cfg.val_evaluator.ann_file = cfg.data_root+'/annotations/all.json'

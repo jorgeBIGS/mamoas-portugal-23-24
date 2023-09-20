@@ -1,3 +1,6 @@
 data/*
 .env/*
 mmdetection/data/*
+src/__pycache__/detection.cpython-310.pyc
+src/__pycache__/images.cpython-310.pyc
+src/__pycache__/preprocessing.cpython-310.pyc

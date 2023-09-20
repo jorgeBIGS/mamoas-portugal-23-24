@@ -5,3 +5,4 @@ geopandas
 pillow
 torch
 torchvision
+tifffile
