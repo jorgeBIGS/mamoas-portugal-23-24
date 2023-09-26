@@ -100,6 +100,6 @@ Once you know how to use the basic scripts of the library, you can proceed with 
 
 ### Generación de shape con mamoas candidatas
 
-1. Ejecutamos `preprocessing.py` con los parámetros que consideremos oportunos en `parameters.py`
-2. Ejecutamos el script `src/mmdetection/scripts_mamoas/trainer.py` para generar un modelo en `src/model` que usaremos para generar el shape con  los resultados. Ojo, que el tipo de modelo está parametrizado en `parameters.py` pero todavía no está incluido en el script `trainer.py`.
-3. El último paso es el lanzamiento de la inferencia sobre la imagen global con la que queramos trabajar. En este caso, si hemos trabajado con Laboreiro, lo normal sería probar el modelo en Arcos. Para ello, lanzamos `inference.py` con los parámetros adecuados en `parameters.py`
+1. Ejecutamos `src/preprocessing.py` con los parámetros que consideremos oportunos en `src/parameters.py`
+2. Ejecutamos el script `src/trainer.py` para generar un modelo en `src/model` que usaremos para generar el shape con  los resultados.
+3. El último paso es el lanzamiento de la inferencia sobre la imagen global con la que queramos trabajar. En este caso, si hemos trabajado con Laboreiro, lo normal sería probar el modelo en Arcos. Para ello, lanzamos `src/inference.py` con los parámetros adecuados en `src/parameters.py`

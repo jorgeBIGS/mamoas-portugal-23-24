@@ -7,13 +7,6 @@ import rasterio
 from images import *
 from parameters import *
 
-dst_image_dir = "data/tiles/"
-dst_valid_tiles = "data/valid_tiles/"
-dst_data_annotation = "data/data/annotations/"
-dst_data_loo_cv = "data/data/annotations/loo_cv/"
-dst_data_images = "data/data/images/"
-
-
 def check_included(bboxes, bbox):
     result = [a['bbox'] for a in bboxes]
     return len(result)==0 or  bbox['bbox'] not in result
@@ -85,7 +78,7 @@ def generate_coco_annotations(image_filenames, train, output_file):
 def get_image_dimensions(image_filename):
     # Aquí puedes implementar la lógica para obtener las dimensiones de la imagen
     # Por ejemplo, usando PIL o cualquier otra biblioteca de imágenes
-    dataset = rasterio.open(f"{dst_valid_tiles}{image_filename}")
+    dataset = rasterio.open(f"{DST_VALID_TILES}{image_filename}")
     image_width, image_height, bounds = dataset.width, dataset.height, dataset.bounds
     return image_width, image_height, bounds
 
@@ -118,15 +111,15 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
 
     img = rasterio.open(tif_name)
 
-    generate_tiles(img, size, overlap, dst_image_dir)
+    generate_tiles(img, size, overlap, DST_IMAGE_DIR)
 
-    tile_paths = os.listdir(dst_image_dir)
+    tile_paths = os.listdir(DST_IMAGE_DIR)
 
     valid_paths = []
     
     for each in tile_paths:
 
-        img_tmp = rasterio.open(f"{dst_image_dir}{each}")
+        img_tmp = rasterio.open(f"{DST_IMAGE_DIR}{each}")
 
         rgb = img_tmp.read()
 
@@ -138,36 +131,36 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
         
 
         if (rgb.sum()) > 0 and len(bounding_boxes)>0:
-            shutil.move(f"{dst_image_dir}{each}",f"{dst_valid_tiles}{each}")
-            convert_geotiff_to_tiff(f"{dst_valid_tiles}{each}", f"{dst_data_images}{each}")
+            shutil.move(f"{DST_IMAGE_DIR}{each}",f"{DST_VALID_TILES}{each}")
+            convert_geotiff_to_tiff(f"{DST_VALID_TILES}{each}", f"{DST_DATA_IMAGES}{each}")
             valid_paths.append(each)
 
 
-    generate_coco_annotations(valid_paths, training, f"{dst_data_annotation}all.json")
+    generate_coco_annotations(valid_paths, training, f"{DST_DATA_ANNOTATION}all.json")
     
     for index, each in enumerate(valid_paths):
         training_set = list(valid_paths)
         training_set.remove(each)
         test_set = list()
         test_set.append(each)
-        generate_coco_annotations(test_set, training, f"{dst_data_loo_cv}test{index}.json")
-        generate_coco_annotations(training_set, training, f"{dst_data_loo_cv}training{index}.json")   
+        generate_coco_annotations(test_set, training, f"{DST_DATA_LOO_CV}test{index}.json")
+        generate_coco_annotations(training_set, training, f"{DST_DATA_LOO_CV}training{index}.json")   
              
 
 if __name__ == '__main__':
     #https://mmdetection.readthedocs.io/en/latest/user_guides/train.html#coco-annotation-format
     #https://mmdetection.readthedocs.io/en/v2.2.0/tutorials/new_dataset.html
-    shutil.rmtree('data/tiles', ignore_errors=True)
-    shutil.rmtree('data/data', ignore_errors=True)
-    shutil.rmtree('data/valid_tiles', ignore_errors=True)
-    os.makedirs(f"data/data/images", exist_ok=True)
-    os.makedirs(f"data/data/annotations", exist_ok=True)
-    os.makedirs(f"data/data/annotations/loo_cv", exist_ok=True)
-    os.makedirs('data/tiles', exist_ok=True)
-    os.makedirs('data/data', exist_ok=True)
-    os.makedirs('data/valid_tiles', exist_ok=True)
+    shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
+    shutil.rmtree(TRAINING_DATA_ROOT, ignore_errors=True)
+    shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
+    os.makedirs(DST_DATA_IMAGES, exist_ok=True)
+    os.makedirs(DST_DATA_ANNOTATION, exist_ok=True)
+    os.makedirs(DST_DATA_LOO_CV, exist_ok=True)
+    os.makedirs(DST_IMAGE_DIR, exist_ok=True)
+    os.makedirs(TRAINING_DATA_ROOT, exist_ok=True)
+    os.makedirs(DST_VALID_TILES, exist_ok=True)
     
     mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, size=SIZE, overlap = OVERLAP)
-    shutil.rmtree('data/tiles', ignore_errors=True)
-    shutil.rmtree('data/valid_tiles', ignore_errors=True)
+    shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
+    shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
     

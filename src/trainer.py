@@ -1,10 +1,11 @@
 import subprocess
+from parameters import *
 
-model="faster_rcnn"
+model=MODEL
 # Config file
-config_file=f"src/mmdetection/configs/mamoas/{model}.py"
-work_dir_fold = 'src/model'
-data_root = 'data/data/'
+config_file=MODEL_CONFIG
+work_dir_fold = MODEL_PATH
+data_root = TRAINING_DATA_ROOT + '/'
 ann_train = 'annotations/all.json'
 ann_val = 'annotations/all.json'
 # Train model
