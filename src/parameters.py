@@ -1,11 +1,12 @@
 #parámetros globales
-TRAINING_IMAGE='data/original/COMB-Laboreiro.tif'
-TRAINING_SHAPE='data/original/Mamoas-Laboreiro-cuadrados-15.shp'
+ORIGINALES = 'data/original'
+TRAINING_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
+TRAINING_SHAPE=ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
 TRAINING_DATA_ROOT = 'data/mamoas'
 SIZE = 200
 OVERLAP = [0, 100]
 RES_MIN = 5
-THRESHOLD = 0
+THRESHOLD = 0.5
 PERCENTILE = 0.9
 
 #parámetros de preprocessing

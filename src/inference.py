@@ -20,7 +20,7 @@ check_point = MODEL_PATH + '/' + 'epoch_24.pth'
 input_tiff = TEST_IMAGE
 
 # Guarda el archivo shapefile
-output_shapefile = TEMPORAL + '/' + SHAPE_NAME
+output_shapefile = ORIGINALES + '/' + SHAPE_NAME
 
 
 # Build the model from a config file and a checkpoint file
@@ -84,3 +84,7 @@ with rasterio.open(input_tiff) as original:
     # Guarda el archivo shapefile
     gdf.to_file(output_shapefile)
     print("Detección de objetos completada y archivo shapefile generado.")
+
+    # Nos aseguramos de borrar todo lo que sea tiff para evitar errores de falta de disco
+    shutil.rmtree(TEMPORAL, ignore_errors=True)
+    os.makedirs(TEMPORAL, exist_ok=True)
