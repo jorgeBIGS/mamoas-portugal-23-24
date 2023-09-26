@@ -1,26 +1,18 @@
-
 import json
 import rasterio 
 import geopandas as gpd
 import shutil
 import os
-from tqdm import tqdm
-import os
-
 import rasterio
-
 from images import *
-
-
-SIZE = 200
-OVERLAP = [0, 100]
+from parameters import *
 
 dst_image_dir = "data/tiles/"
 dst_valid_tiles = "data/valid_tiles/"
 dst_data_annotation = "data/data/annotations/"
 dst_data_loo_cv = "data/data/annotations/loo_cv/"
 dst_data_images = "data/data/images/"
-RES_MIN = 5
+
 
 def check_included(bboxes, bbox):
     result = [a['bbox'] for a in bboxes]
@@ -175,6 +167,7 @@ if __name__ == '__main__':
     os.makedirs('data/data', exist_ok=True)
     os.makedirs('data/valid_tiles', exist_ok=True)
     
-    mamoas_tiles("data/original/COMB-Laboreiro-Arcos.tif", "data/original/Mamoas-Laboreiro-cuadrados-15.shp", size=SIZE, overlap = OVERLAP)
-
+    mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, size=SIZE, overlap = OVERLAP)
+    shutil.rmtree('data/tiles', ignore_errors=True)
+    shutil.rmtree('data/valid_tiles', ignore_errors=True)
     

@@ -1,1 +1,0 @@
-{"images": [{"id": 1, "file_name": "04856_.tif", "width": 200, "height": 200}], "annotations": [{"id": 1, "image_id": 1, "category_id": 1, "bbox": [44, 176, 15.0, 15.0], "area": 225.0, "iscrowd": 0}, {"id": 2, "image_id": 1, "category_id": 1, "bbox": [73, 167, 15.0, 15.0], "area": 225.0, "iscrowd": 0}], "categories": [{"id": 1, "name": "mamoa", "supercategory": "object"}]}

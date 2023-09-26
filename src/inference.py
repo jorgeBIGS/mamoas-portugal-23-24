@@ -2,7 +2,6 @@
 import os
 import shutil
 from mmdet.apis import init_detector, inference_detector
-from numpy import std 
 import geopandas as gpd
 import pandas as pd
 import rasterio
@@ -11,35 +10,32 @@ from shapely.geometry import box
 import numpy as np
 import images
 from PIL import Image
-from preprocessing import OVERLAP, SIZE
+from parameters import *
 
 # Specify the path to model config and checkpoint file
-config_file = 'mmdetection/configs/mamoas/faster_rcnn.py'
-check_point = None #'src/detection/epoch_24.pth'
+config_file = MODEL_PATH + '/' + MODEL + '.py'
+check_point = MODEL_PATH + '/' + 'epoch_24.pth'
 
 # Ruta al archivo TIFF georeferenciado de entrada
-input_tiff = 'data/original/COMB-Arcos.tif'
-
-# Ruta temporal
-temporal = 'data/detection'
+input_tiff = TEST_IMAGE
 
 # Guarda el archivo shapefile
-output_shapefile = temporal + '/objetos_detectados.shp'
+output_shapefile = TEMPORAL + '/' + SHAPE_NAME
 
 
 # Build the model from a config file and a checkpoint file
 model = init_detector(config_file, checkpoint=check_point, device='cuda:0')
 
 # Nos aseguramos de borrar todo lo que sea tiff para evitar errores no desados
-shutil.rmtree(temporal, ignore_errors=True)
-os.makedirs(temporal, exist_ok=True)
+shutil.rmtree(TEMPORAL, ignore_errors=True)
+os.makedirs(TEMPORAL, exist_ok=True)
 
 # Abre la imagen TIFF y genera tiles y copias sin georreferenciar.
 with rasterio.open(input_tiff) as original:
-    paths = images.generate_tiles(original, SIZE, OVERLAP, temporal)
+    paths = images.generate_tiles(original, SIZE, OVERLAP, TEMPORAL)
     paths_no_geo = []
     for path in paths:
-        path_output = path.replace(".tif","rgb.tif")
+        path_output =  path.replace('.tif', "rgb.tif")
         paths_no_geo.append(path_output)
         images.convert_geotiff_to_tiff(path, path_output)
     
@@ -73,15 +69,14 @@ with rasterio.open(input_tiff) as original:
                                                     transform.xy(src.transform, geom.bounds[3], geom.bounds[2]))
                 df['geometry'] = df['geometry'].apply(lambda tupla: box(tupla[0], tupla[1], tupla[2], tupla[3]))
 
-                #filtramos los valores
-                #threshold = 3 * df['score'].std() + df['score'].mean()
-                #df = pd.DataFrame(df[df['score'] >= threshold])
+                #filtramos los valores por debajo de 0.5
+                df = pd.DataFrame(df[df['score'] >= THRESHOLD])
                 
                 merged_df = pd.concat([merged_df, df], ignore_index=True)
     
-    #filtramos los valores
-    threshold = 3 * merged_df['score'].std() + merged_df['score'].mean()
-    merged_df = pd.DataFrame(merged_df[merged_df['score'] >= threshold])
+    #filtramos los valores y nos quedamos con los extremadamente buenos.
+    best = merged_df['score'].quantile(PERCENTILE)
+    merged_df = pd.DataFrame(merged_df[merged_df['score'] >= best])
     
     # Crea un GeoDataFrame a partir del DataFrame
     gdf = gpd.GeoDataFrame(merged_df,  geometry='geometry', crs=src.crs)

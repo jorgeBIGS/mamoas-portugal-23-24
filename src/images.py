@@ -77,8 +77,10 @@ def generate_tiles(tif:rasterio.io.DatasetReader, size:int, overlap: list[int], 
         for y_over in overlap:
             for x in tqdm(range(0, tif.width, size)):
                 for y in tqdm(range(0, tif.height, size)):
+                    
                     x = x + x_over
                     y = y + y_over
+                    
                     # creating the tile specific profile
                     profile = get_tile_profile(tif, x, y)
                     # extracting the pixel data (couldnt understand as i dont think thats the correct way to pass the argument)
