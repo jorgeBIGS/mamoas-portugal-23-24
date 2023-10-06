@@ -151,12 +151,12 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
         bounding_boxes = check_train(img_tmp.bounds, training)
         
 
-        if (rgb.sum()) > 0 and len(bounding_boxes)>0:
+        if INCLUDE_ALL_IMAGES or ((rgb.sum()) > 0 and len(bounding_boxes)>0):
             shutil.move(f"{DST_IMAGE_DIR}{each}",f"{DST_VALID_TILES}{each}")
             convert_geotiff_to_tiff(f"{DST_VALID_TILES}{each}", f"{DST_DATA_IMAGES}{each}")
             valid_paths.append(each)
 
-
+    
     generate_coco_annotations(valid_paths, training, f"{DST_DATA_ANNOTATION}all.json")
     
     for index, each in enumerate(valid_paths):
@@ -182,6 +182,6 @@ if __name__ == '__main__':
     os.makedirs(DST_VALID_TILES, exist_ok=True)
     
     mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, size=SIZE, overlap = OVERLAP)
-    #shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
-    #shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
+    shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
+    shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
     
