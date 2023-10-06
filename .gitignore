@@ -2,3 +2,4 @@ data/*
 .env/*
 src/model/*
 src/__pycache__/*
+aux.json

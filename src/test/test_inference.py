@@ -13,7 +13,7 @@ IOU=0.5
 config_file = 'src/model/faster_rcnn.py'
 check_point = 'src/model/epoch_24.pth'
 
-training = 'data/data'
+training = 'data/mamoas'
 
 # Ruta temporal
 temporal = training + '/detection'

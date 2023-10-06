@@ -1,7 +1,7 @@
 #parámetros globales
 ORIGINALES = 'data/original'
 TRAINING_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
-TRAINING_SHAPE=ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
+TRAINING_SHAPE=ORIGINALES + '/Mamoas-Arcos-cuadrados-15.shp'
 TRAINING_DATA_ROOT = 'data/mamoas'
 SIZE = 200
 OVERLAP = [0, 100]
@@ -15,6 +15,8 @@ DST_VALID_TILES = TRAINING_DATA_ROOT + "/valid_tiles/"
 DST_DATA_ANNOTATION = TRAINING_DATA_ROOT + "/annotations/"
 DST_DATA_LOO_CV = DST_DATA_ANNOTATION + "loo_cv/"
 DST_DATA_IMAGES = TRAINING_DATA_ROOT + "/images/"
+COMPLETE_BBOX_OVERLAP=False
+LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
 
 #parámetros de training
 MODEL = "faster_rcnn"

@@ -86,13 +86,34 @@ def get_image_dimensions(image_filename):
 def check_limit(bounds, x, y):
     return bounds.left <= x <= bounds.right and bounds.bottom <= y <= bounds.top
 
+def check_area(tile, bbox):
+    xmin, ymin, xmax, ymax = bbox[0], bbox[1], bbox[2], bbox[3]
+    area_bbox = (xmax-xmin)*(ymax-ymin)
+    xmin = tile.left if xmin <= tile.left else xmin
+    xmax = tile.right if xmax >= tile.right else xmax
+    ymin = tile.bottom if ymin<=tile.bottom else ymin
+    ymax = tile.top if ymax>= tile.top else ymax
+    if (xmax-xmin)>0 and (ymax-ymin)>0:
+        result = (xmax-xmin)*(ymax-ymin)/area_bbox
+    else:
+        result = -1
+    return result
+
+
 def check_train(tile_bounds, train):
     result = []
 
     for bbox in train:
         xmin, ymin, xmax, ymax = bbox.bounds[0], bbox.bounds[1], bbox.bounds[2], bbox.bounds[3]
-        if check_limit(tile_bounds, xmin, ymin) and check_limit(tile_bounds, xmin, ymax) and check_limit(tile_bounds, xmax, ymin) and check_limit(tile_bounds, xmax, ymax):
-            result.append(bbox)
+        #TODO: Problem with the overlap between tile and bbox. By now, we focus on a minimum overlap area (LENIENT) or a complete overlap (STRICT).
+        if COMPLETE_BBOX_OVERLAP:
+            #STRICT 
+            if check_limit(tile_bounds, xmin, ymin) and check_limit(tile_bounds, xmin, ymax) and check_limit(tile_bounds, xmax, ymin) and check_limit(tile_bounds, xmax, ymax):
+                result.append(bbox)
+        else:
+            #LENIENT
+            if check_area(tile_bounds, bbox.bounds)>=LENIENT_BBOX_OVERLAP_PERCENTAGE:
+                result.append(bbox)
 
     return result
 
@@ -161,6 +182,6 @@ if __name__ == '__main__':
     os.makedirs(DST_VALID_TILES, exist_ok=True)
     
     mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, size=SIZE, overlap = OVERLAP)
-    shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
-    shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
+    #shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
+    #shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
     
