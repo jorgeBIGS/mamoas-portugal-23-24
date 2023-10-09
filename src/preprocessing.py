@@ -78,8 +78,8 @@ def generate_coco_annotations(image_filenames, train, output_file):
 def get_image_dimensions(image_filename):
     # Aquí puedes implementar la lógica para obtener las dimensiones de la imagen
     # Por ejemplo, usando PIL o cualquier otra biblioteca de imágenes
-    dataset = rasterio.open(f"{DST_VALID_TILES}{image_filename}")
-    image_width, image_height, bounds = dataset.width, dataset.height, dataset.bounds
+    with rasterio.open(f"{DST_VALID_TILES}{image_filename}") as dataset:
+        image_width, image_height, bounds = dataset.width, dataset.height, dataset.bounds
     return image_width, image_height, bounds
 
 ## Probado
@@ -151,7 +151,7 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
         bounding_boxes = check_train(img_tmp.bounds, training)
         
 
-        if INCLUDE_ALL_IMAGES or ((rgb.sum()) > 0 and len(bounding_boxes)>0):
+        if rgb.sum() > 0 and np.mean(rgb) !=255 and (INCLUDE_ALL_IMAGES or len(bounding_boxes)>0):
             shutil.move(f"{DST_IMAGE_DIR}{each}",f"{DST_VALID_TILES}{each}")
             convert_geotiff_to_tiff(f"{DST_VALID_TILES}{each}", f"{DST_DATA_IMAGES}{each}")
             valid_paths.append(each)
@@ -159,13 +159,14 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
     
     generate_coco_annotations(valid_paths, training, f"{DST_DATA_ANNOTATION}all.json")
     
-    for index, each in enumerate(valid_paths):
-        training_set = list(valid_paths)
-        training_set.remove(each)
-        test_set = list()
-        test_set.append(each)
-        generate_coco_annotations(test_set, training, f"{DST_DATA_LOO_CV}test{index}.json")
-        generate_coco_annotations(training_set, training, f"{DST_DATA_LOO_CV}training{index}.json")   
+    if LEAVE_ONE_OUT_BOOL:
+        for index, each in enumerate(valid_paths):
+            training_set = list(valid_paths)
+            training_set.remove(each)
+            test_set = list()
+            test_set.append(each)
+            generate_coco_annotations(test_set, training, f"{DST_DATA_LOO_CV}test{index}.json")
+            generate_coco_annotations(training_set, training, f"{DST_DATA_LOO_CV}training{index}.json")   
              
 
 if __name__ == '__main__':
@@ -183,5 +184,5 @@ if __name__ == '__main__':
     
     mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, size=SIZE, overlap = OVERLAP)
     shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
-    shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
+    #shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
     
