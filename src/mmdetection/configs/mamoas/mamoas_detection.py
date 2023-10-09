@@ -1,5 +1,4 @@
 dataset_type = 'CocoDataset'
-data_root = 'data/mamoas-30/'
 metainfo = {
     'classes': ('mamoa', ),
     'palette': [
@@ -36,7 +35,7 @@ train_dataloader = dict(
     batch_sampler=dict(type='AspectRatioBatchSampler'),
     dataset=dict(
         type=dataset_type,
-        data_root=data_root,
+        data_root='data/mamoas-laboreiro/',
         metainfo=metainfo,
         ann_file='annotations/all.json',
         data_prefix=dict(img='images/'),
@@ -51,7 +50,7 @@ val_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type=dataset_type,
-        data_root=data_root,
+        data_root='data/mamoas-arcos/',
         metainfo=metainfo,
         ann_file='annotations/all.json',
         data_prefix=dict(img='images/'),
@@ -62,7 +61,7 @@ test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='CocoMetric',
-    ann_file=data_root + 'annotations/all.json',
+    ann_file='data/mamoas-arcos/' + 'annotations/all.json',
     metric='bbox',
     format_only=False,
     backend_args=backend_args)

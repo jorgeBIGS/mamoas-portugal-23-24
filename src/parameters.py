@@ -2,7 +2,12 @@
 ORIGINALES = 'data/original'
 TRAINING_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
 TRAINING_SHAPE=ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
-TRAINING_DATA_ROOT = 'data/mamoas'
+TRAINING_DATA_ROOT = 'data/mamoas-laboreiro'
+
+VAL_IMAGE=ORIGINALES + '/COMB-Arcos.tif'
+VAL_SHAPE=ORIGINALES + '/Mamoas-Arcos-cuadrados-15.shp'
+VAL_DATA_ROOT = 'data/mamoas-arcos'
+
 SIZE = 200
 OVERLAP = [0, 100]
 RES_MIN = 5
