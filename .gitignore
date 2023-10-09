@@ -2,3 +2,5 @@ data/*
 .env/*
 src/model/*
 src/__pycache__/*
+aux.json
+mypy-config.ini

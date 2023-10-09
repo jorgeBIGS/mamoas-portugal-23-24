@@ -40,7 +40,8 @@ with rasterio.open(input_tiff) as original:
         images.convert_geotiff_to_tiff(path, path_output)
     
     #Clasifica y genera shapes
-    merged_df = pd.DataFrame([], columns=['x1', 'y1', 'x2', 'y2', 'score', 'geometry']) 
+    
+    result_shapes = []
     for image_path, image_path_no_geo in zip(paths, paths_no_geo):
 
         with rasterio.open(image_path) as src:
@@ -58,32 +59,33 @@ with rasterio.open(input_tiff) as original:
             bboxes = result['pred_instances']['bboxes'].tolist()
 
 
-            shapes = [(bbox[0], bbox[1], bbox[2], bbox[3], score) for score, bbox in zip(scores, bboxes)]
+            shapes = [(transform.xy(src.transform, bbox[1], bbox[0]) 
+                           + transform.xy(src.transform, bbox[3], bbox[2]),
+                           score) for score, bbox in zip(scores, bboxes)]
+            shapes = [(box(bbox[0], bbox[1], bbox[2], bbox[3]), score) for bbox, score in shapes]
+            
+            if len(shapes)>0:
+                result_shapes += shapes
+
+    if len(result_shapes)>0:   
+        merged_df = pd.DataFrame(result_shapes, columns=['geometry', 'score']) 
+
+    
+        #filtramos los valores por debajo de 0.5
+        merged_df = pd.DataFrame(merged_df[merged_df['score'] >= THRESHOLD])
         
-            if len(shapes)>0:   
-                df = pd.DataFrame(shapes, columns=['x1', 'y1', 'x2', 'y2', 'score'])
-
-                # Convierte las coordenadas de píxeles a coordenadas geográficas utilizando 'clipped_transform'
-                df['geometry'] = [box(x1, y1, x2, y2) for x1, y1, x2, y2 in zip(df['x1'], df['y1'], df['x2'], df['y2'])]
-                df['geometry'] = df['geometry'].apply(lambda geom: transform.xy(src.transform, geom.bounds[1], geom.bounds[0]) + 
-                                                    transform.xy(src.transform, geom.bounds[3], geom.bounds[2]))
-                df['geometry'] = df['geometry'].apply(lambda tupla: box(tupla[0], tupla[1], tupla[2], tupla[3]))
-
-                #filtramos los valores por debajo de 0.5
-                df = pd.DataFrame(df[df['score'] >= THRESHOLD])
-                
-                merged_df = pd.concat([merged_df, df], ignore_index=True)
+        #filtramos los valores y nos quedamos con los extremadamente buenos.
+        #best = merged_df['score'].quantile(PERCENTILE)
+        #merged_df = pd.DataFrame(merged_df[merged_df['score'] >= best])
+        
+        # Crea un GeoDataFrame a partir del DataFrame
+        gdf = gpd.GeoDataFrame(merged_df,  geometry='geometry', crs=src.crs)
     
-    #filtramos los valores y nos quedamos con los extremadamente buenos.
-    best = merged_df['score'].quantile(PERCENTILE)
-    merged_df = pd.DataFrame(merged_df[merged_df['score'] >= best])
-    
-    # Crea un GeoDataFrame a partir del DataFrame
-    gdf = gpd.GeoDataFrame(merged_df,  geometry='geometry', crs=src.crs)
-    
-    # Guarda el archivo shapefile
-    gdf.to_file(output_shapefile)
-    print("Detección de objetos completada y archivo shapefile generado.")
+        # Guarda el archivo shapefile
+        gdf.to_file(output_shapefile)
+        print("Detección de objetos completada y archivo shapefile generado.")
+    else:
+        print("No shape generated")
 
     # Nos aseguramos de borrar todo lo que sea tiff para evitar errores de falta de disco
     shutil.rmtree(TEMPORAL, ignore_errors=True)
