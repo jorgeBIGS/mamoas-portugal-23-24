@@ -6,12 +6,13 @@ import os
 import rasterio
 from images import *
 from parameters import *
+import gc
 
 def check_included(bboxes, bbox):
     result = [a['bbox'] for a in bboxes]
     return len(result)==0 or  bbox['bbox'] not in result
 
-def generate_coco_annotations(image_filenames, train, output_file):
+def generate_coco_annotations(image_filenames, train, output_file, limites = dict()):
     categories = []
 
     # Crea la categoría "mamoa" en el archivo de anotaciones
@@ -31,7 +32,11 @@ def generate_coco_annotations(image_filenames, train, output_file):
     # Agrega información de las imágenes al objeto COCO
     for i, image_filename in enumerate(image_filenames):
         image_id = i + 1
-        image_width, image_height, bounds = get_image_dimensions(image_filename)
+        if not image_filename in limites:
+            image_width, image_height, bounds = get_image_dimensions(image_filename)
+            limites[image_filename] = (image_width, image_height, bounds)
+        else:
+            image_width, image_height, bounds = limites[image_filename]
 
         image_info = {
             'id': image_id,
@@ -64,7 +69,6 @@ def generate_coco_annotations(image_filenames, train, output_file):
             annotations.append(annotation)
             id_annot = id_annot + 1 
             
-
     # Guarda el archivo de anotaciones en formato JSON
     with open(output_file, 'w') as f:
         # Crea el objeto COCO
@@ -74,6 +78,12 @@ def generate_coco_annotations(image_filenames, train, output_file):
         'categories': categories
         }
         json.dump(coco_data, f)
+        
+    del(f)
+    
+    gc.collect()    
+    
+    return limites
 
 def get_image_dimensions(image_filename):
     # Aquí puedes implementar la lógica para obtener las dimensiones de la imagen
@@ -157,7 +167,7 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
             valid_paths.append(each)
 
     
-    generate_coco_annotations(valid_paths, training, f"{DST_DATA_ANNOTATION}all.json")
+    info = generate_coco_annotations(valid_paths, training, f"{DST_DATA_ANNOTATION}all.json")
     
     if LEAVE_ONE_OUT_BOOL:
         for index, each in enumerate(valid_paths):
@@ -165,8 +175,8 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
             training_set.remove(each)
             test_set = list()
             test_set.append(each)
-            generate_coco_annotations(test_set, training, f"{DST_DATA_LOO_CV}test{index}.json")
-            generate_coco_annotations(training_set, training, f"{DST_DATA_LOO_CV}training{index}.json")   
+            generate_coco_annotations(test_set, training, f"{DST_DATA_LOO_CV}test{index}.json", info)
+            generate_coco_annotations(training_set, training, f"{DST_DATA_LOO_CV}training{index}.json", info)   
              
 
 if __name__ == '__main__':
