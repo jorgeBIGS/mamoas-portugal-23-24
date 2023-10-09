@@ -194,5 +194,4 @@ if __name__ == '__main__':
     
     mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, size=SIZE, overlap = OVERLAP)
     shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
-    #shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
     

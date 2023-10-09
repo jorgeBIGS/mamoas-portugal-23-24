@@ -1,7 +1,7 @@
 #parámetros globales
 ORIGINALES = 'data/original'
-TRAINING_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
-TRAINING_SHAPE=ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
+TRAINING_IMAGE=ORIGINALES + '/COMB-Arcos.tif'
+TRAINING_SHAPE=ORIGINALES + '/Mamoas-Arcos-cuadrados-15.shp'
 TRAINING_DATA_ROOT = 'data/mamoas'
 SIZE = 200
 OVERLAP = [0, 100]
@@ -23,7 +23,7 @@ INCLUDE_ALL_IMAGES = True
 MODEL = "faster_rcnn"
 MODEL_CONFIG = f"src/mmdetection/configs/mamoas/{MODEL}.py"
 MODEL_PATH = 'src/model'
-LEAVE_ONE_OUT_BOOL = True
+LEAVE_ONE_OUT_BOOL = False
 
 #parámetros de inference
 TEMPORAL = 'data/tmp'

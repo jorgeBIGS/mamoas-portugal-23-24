@@ -73,13 +73,13 @@ def get_tile_name_path(dst_dir:str, index:int):
 def generate_tiles(tif:rasterio.io.DatasetReader, size:int, overlap: list[int], dst_dir:str)->list[str]:
     result = []
     i = 0
-    for x_over in overlap:
-        for y_over in overlap:
-            for x in tqdm(range(0, tif.width, size)):
-                for y in tqdm(range(0, tif.height, size)):
+    for over_1 in overlap:
+        for over_2 in overlap:
+            for x_ini in tqdm(range(0, tif.width, size)):
+                for y_ini in tqdm(range(0, tif.height, size)):
                     
-                    x = x + x_over
-                    y = y + y_over
+                    x = x_ini + over_1
+                    y = y_ini + over_2
                     
                     # creating the tile specific profile
                     profile = get_tile_profile(tif, x, y)
