@@ -6,12 +6,13 @@ import os
 import rasterio
 from images import *
 from parameters import *
+import gc
 
 def check_included(bboxes, bbox):
     result = [a['bbox'] for a in bboxes]
     return len(result)==0 or  bbox['bbox'] not in result
 
-def generate_coco_annotations(image_filenames, train, output_file):
+def generate_coco_annotations(image_filenames, train, output_file, limites = dict()):
     categories = []
 
     # Crea la categoría "mamoa" en el archivo de anotaciones
@@ -31,7 +32,11 @@ def generate_coco_annotations(image_filenames, train, output_file):
     # Agrega información de las imágenes al objeto COCO
     for i, image_filename in enumerate(image_filenames):
         image_id = i + 1
-        image_width, image_height, bounds = get_image_dimensions(image_filename)
+        if not image_filename in limites:
+            image_width, image_height, bounds = get_image_dimensions(image_filename)
+            limites[image_filename] = (image_width, image_height, bounds)
+        else:
+            image_width, image_height, bounds = limites[image_filename]
 
         image_info = {
             'id': image_id,
@@ -53,18 +58,27 @@ def generate_coco_annotations(image_filenames, train, output_file):
 
             if posX + w > image_width: w = image_width - posX 
             if posY + h > image_height: h = image_height - posY
-            annotation = {
-                'id': id_annot,
-                'image_id': image_id,
-                'category_id': 1,  # ID de la categoría
-                'bbox': [posX, posY, w, h],
-                'area': w * h,
-                'iscrowd': 0
-            }
-            annotations.append(annotation)
-            id_annot = id_annot + 1 
-            
 
+            is_valid = False
+            with rasterio.open(DST_DATA_IMAGES + image_filename) as im:
+                # extracting the pixel data (couldnt understand as i dont think thats the correct way to pass the argument)
+                tile_data = im.read(window=((posY, posY+h), (posX, posX+w)),
+                                    boundless=True, fill_value=0)[:3]
+                # remove filled boxes as ground truth
+                is_valid = np.mean(tile_data) !=255 and np.mean(tile_data) !=0
+
+            if is_valid:
+                annotation = {
+                    'id': id_annot,
+                    'image_id': image_id,
+                    'category_id': 1,  # ID de la categoría
+                    'bbox': [posX, posY, w, h],
+                    'area': w * h,
+                    'iscrowd': 0
+                }
+                annotations.append(annotation)
+                id_annot = id_annot + 1
+            
     # Guarda el archivo de anotaciones en formato JSON
     with open(output_file, 'w') as f:
         # Crea el objeto COCO
@@ -74,12 +88,18 @@ def generate_coco_annotations(image_filenames, train, output_file):
         'categories': categories
         }
         json.dump(coco_data, f)
+        
+    del(f)
+    
+    gc.collect()    
+    
+    return limites
 
 def get_image_dimensions(image_filename):
     # Aquí puedes implementar la lógica para obtener las dimensiones de la imagen
     # Por ejemplo, usando PIL o cualquier otra biblioteca de imágenes
-    dataset = rasterio.open(f"{DST_VALID_TILES}{image_filename}")
-    image_width, image_height, bounds = dataset.width, dataset.height, dataset.bounds
+    with rasterio.open(f"{DST_VALID_TILES}{image_filename}") as dataset:
+        image_width, image_height, bounds = dataset.width, dataset.height, dataset.bounds
     return image_width, image_height, bounds
 
 ## Probado
@@ -96,7 +116,7 @@ def check_area(tile, bbox):
     if (xmax-xmin)>0 and (ymax-ymin)>0:
         result = (xmax-xmin)*(ymax-ymin)/area_bbox
     else:
-        result = -1
+        result = 0
     return result
 
 
@@ -151,21 +171,22 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
         bounding_boxes = check_train(img_tmp.bounds, training)
         
 
-        if INCLUDE_ALL_IMAGES or ((rgb.sum()) > 0 and len(bounding_boxes)>0):
+        if rgb.sum() > 0 and np.mean(rgb) !=255 and (INCLUDE_ALL_IMAGES or len(bounding_boxes)>0):
             shutil.move(f"{DST_IMAGE_DIR}{each}",f"{DST_VALID_TILES}{each}")
             convert_geotiff_to_tiff(f"{DST_VALID_TILES}{each}", f"{DST_DATA_IMAGES}{each}")
             valid_paths.append(each)
 
     
-    generate_coco_annotations(valid_paths, training, f"{DST_DATA_ANNOTATION}all.json")
+    info = generate_coco_annotations(valid_paths, training, f"{DST_DATA_ANNOTATION}all.json")
     
-    for index, each in enumerate(valid_paths):
-        training_set = list(valid_paths)
-        training_set.remove(each)
-        test_set = list()
-        test_set.append(each)
-        generate_coco_annotations(test_set, training, f"{DST_DATA_LOO_CV}test{index}.json")
-        generate_coco_annotations(training_set, training, f"{DST_DATA_LOO_CV}training{index}.json")   
+    if LEAVE_ONE_OUT_BOOL:
+        for index, each in enumerate(valid_paths):
+            training_set = list(valid_paths)
+            training_set.remove(each)
+            test_set = list()
+            test_set.append(each)
+            generate_coco_annotations(test_set, training, f"{DST_DATA_LOO_CV}test{index}.json", info)
+            generate_coco_annotations(training_set, training, f"{DST_DATA_LOO_CV}training{index}.json", info)   
              
 
 if __name__ == '__main__':
@@ -183,5 +204,4 @@ if __name__ == '__main__':
     
     mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, size=SIZE, overlap = OVERLAP)
     shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
-    shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
     

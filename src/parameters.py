@@ -28,6 +28,7 @@ INCLUDE_ALL_IMAGES = True
 MODEL = "faster_rcnn"
 MODEL_CONFIG = f"src/mmdetection/configs/mamoas/{MODEL}.py"
 MODEL_PATH = 'src/model'
+LEAVE_ONE_OUT_BOOL = False
 
 #parámetros de inference
 TEMPORAL = 'data/tmp'
