@@ -58,16 +58,26 @@ def generate_coco_annotations(image_filenames, train, output_file, limites = dic
 
             if posX + w > image_width: w = image_width - posX 
             if posY + h > image_height: h = image_height - posY
-            annotation = {
-                'id': id_annot,
-                'image_id': image_id,
-                'category_id': 1,  # ID de la categoría
-                'bbox': [posX, posY, w, h],
-                'area': w * h,
-                'iscrowd': 0
-            }
-            annotations.append(annotation)
-            id_annot = id_annot + 1 
+
+            is_valid = False
+            with rasterio.open(DST_DATA_IMAGES + image_filename) as im:
+                # extracting the pixel data (couldnt understand as i dont think thats the correct way to pass the argument)
+                tile_data = im.read(window=((posY, posY+h), (posX, posX+w)),
+                                    boundless=True, fill_value=0)[:3]
+                # remove filled boxes as ground truth
+                is_valid = np.mean(tile_data) !=255 and np.mean(tile_data) !=0
+
+            if is_valid:
+                annotation = {
+                    'id': id_annot,
+                    'image_id': image_id,
+                    'category_id': 1,  # ID de la categoría
+                    'bbox': [posX, posY, w, h],
+                    'area': w * h,
+                    'iscrowd': 0
+                }
+                annotations.append(annotation)
+                id_annot = id_annot + 1
             
     # Guarda el archivo de anotaciones en formato JSON
     with open(output_file, 'w') as f:
@@ -106,7 +116,7 @@ def check_area(tile, bbox):
     if (xmax-xmin)>0 and (ymax-ymin)>0:
         result = (xmax-xmin)*(ymax-ymin)/area_bbox
     else:
-        result = -1
+        result = 0
     return result
 
 
