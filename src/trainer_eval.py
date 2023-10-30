@@ -31,49 +31,53 @@ if len(lista)>0:
 else:
     ckpt_file = None
     
-# Test model and save predictions
+# # Test model and save predictions with different score thresholds
+# # TODO: Comment line 32 in mmdet/evaluation/metrics/dump_det_results.py: data_sample.pop('gt_instances', None)
+for score_thr in [0.05, 0.5]:
+    subprocess.run(["python", "src/mmdetection/scripts_mamoas/tools/test.py", 
+                            config_file, 
+                            f"{ckpt_file}", 
+                            # "--tta",
+                            "--work-dir", f"{work_dir}",
+                            "--out", f"{work_dir}/preds{score_thr}.pkl",
+                            "--show-dir", f"vis_preds/",
+                            f"--cfg-options",
+                            f"model.test_cfg.rcnn.score_thr={score_thr}",
+                            f"test_dataloader.dataset.data_root={val_data_root}",
+                            f"test_dataloader.dataset.ann_file={ann_file}",
+                            f"test_evaluator.ann_file={val_data_root}{ann_file}"
+                            ])
+
+
+
+# Evaluation 
 # TODO: Comment line 32 in mmdet/evaluation/metrics/dump_det_results.py: data_sample.pop('gt_instances', None)
-subprocess.run(["python", "src/mmdetection/scripts_mamoas/tools/test.py", 
-                        config_file, 
-                        f"{ckpt_file}", 
-                        "--work-dir", f"{work_dir}",
-                        "--out", f"{work_dir}/preds.pkl",
-                        "--show-dir", f"vis_preds/",
-                        f"--cfg-options",
-                        f"test_dataloader.dataset.data_root={val_data_root}",
-                        f"test_dataloader.dataset.ann_file={ann_file}",
-                        f"test_evaluator.ann_file={val_data_root}{ann_file}"
-                        ])
+# AP results are saved in resultsX.log
 
+    eval_results = subprocess.run(["python", "src/mmdetection/scripts_mamoas/tools/eval_metric.py", 
+                                    config_file, 
+                                    f"{work_dir}/preds{score_thr}.pkl",
+                                    f"--cfg-options",
+                                    f"test_dataloader.dataset.data_root={val_data_root}",
+                                    f"test_dataloader.dataset.ann_file={ann_file}",
+                                    f"test_evaluator.ann_file={val_data_root}{ann_file}"]
+                                    ,capture_output=True, text=True).stdout
 
+    print("-----------------------------------")
+    print("eval_results:")
+    print(eval_results)
+    print("-----------------------------------")
 
-# Evaluation
-# TODO: Comment line 32 in mmdet/evaluation/metrics/dump_det_results.py: data_sample.pop('gt_instances', None)
-# AP results are saved in results.log
-eval_results = subprocess.run(["python", "src/mmdetection/scripts_mamoas/tools/eval_metric.py", 
-                                config_file, 
-                                f"{work_dir}/preds.pkl",
-                                f"--cfg-options",
-                                f"test_dataloader.dataset.data_root={val_data_root}",
-                                f"test_dataloader.dataset.ann_file={ann_file}",
-                                f"val_evaluator.ann_file={val_data_root}{ann_file}"]
-                                ,capture_output=True, text=True).stdout
-
-print("-----------------------------------")
-print("eval_results:")
-print(eval_results)
-print("-----------------------------------")
-
-eval_results_file = open(f"{work_dir}/results.log", "w")
-eval_results_file.write(eval_results)
-eval_results_file.close()
+    eval_results_file = open(f"{work_dir}/results{score_thr}.log", "w")
+    eval_results_file.write(eval_results)
+    eval_results_file.close()
 
 
 # Confusion matrix (User must set score and iou threshold)
 # The confusion matrix and normalized confusion matrix are saved in png files
 subprocess.run(["python", "src/mmdetection/scripts_mamoas/tools/confusion_matrix.py",
                 config_file,
-                f"{work_dir}/preds.pkl",
+                f"{work_dir}/preds0.05.pkl",
                 work_dir,
                 "--score-thr=0.5",
                 "--tp-iou-thr=0.5",
@@ -90,7 +94,7 @@ subprocess.run(["python", "src/mmdetection/scripts_mamoas/tools/confusion_matrix
     
 subprocess.run(["python", "src/mmdetection/scripts_mamoas/tools/analyze_results.py",
                     config_file,
-                    f"{work_dir}/preds.pkl",
+                    f"{work_dir}/preds0.5.pkl",
                     f"{work_dir}/analyze",
                     "--topk=20",
                     "--show-score-thr=0.5",

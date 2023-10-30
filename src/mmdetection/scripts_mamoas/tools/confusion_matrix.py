@@ -84,8 +84,6 @@ def calculate_confusion_matrix(dataset,
     for idx, per_img_res in enumerate(results):
         res_bboxes = per_img_res['pred_instances']
         gts = dataset.get_data_info(idx)['instances']
-        if '06763' in per_img_res['img_path']:
-            print()
         analyze_per_img_dets(confusion_matrix, gts, res_bboxes, score_thr,
                              tp_iou_thr, nms_iou_thr)
         prog_bar.update()

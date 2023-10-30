@@ -158,6 +158,9 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
 
     valid_paths = []
     
+    include=True
+    count_background_images = 0
+    
     for each in tile_paths:
 
         img_tmp = rasterio.open(f"{DST_IMAGE_DIR}{each}")
@@ -170,8 +173,13 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
         
         bounding_boxes = check_train(img_tmp.bounds, training)
         
+        if(rgb.sum() > 0 and np.mean(rgb) !=255 and len(bounding_boxes)==0):
+            count_background_images+=1
+            if count_background_images>NUM_BACKGROUND_IMAGES:
+                include=False
+            
 
-        if rgb.sum() > 0 and np.mean(rgb) !=255 and (INCLUDE_ALL_IMAGES or len(bounding_boxes)>0):
+        if rgb.sum() > 0 and np.mean(rgb) !=255 and (INCLUDE_ALL_IMAGES or len(bounding_boxes)>0 or include):
             shutil.move(f"{DST_IMAGE_DIR}{each}",f"{DST_VALID_TILES}{each}")
             convert_geotiff_to_tiff(f"{DST_VALID_TILES}{each}", f"{DST_DATA_IMAGES}{each}")
             valid_paths.append(each)

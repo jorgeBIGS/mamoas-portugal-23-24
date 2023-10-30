@@ -48,8 +48,10 @@ def bbox_map_eval(det_result, annotation, nproc=4):
     else:
         bbox_det_result = [det_result]
     # mAP
-    iou_thrs = np.linspace(
-        .5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
+    # iou_thrs = np.linspace(
+    #     .5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
+    
+    iou_thrs = [0.5]
 
     processes = []
     workers = Pool(processes=nproc)
@@ -65,8 +67,13 @@ def bbox_map_eval(det_result, annotation, nproc=4):
     workers.join()
 
     mean_aps = []
-    for p in processes:
-        mean_aps.append(p.get()[0])
+    if len(annotation['instances'])==0 and len(bbox_det_result[0][0])==0:
+        for p in processes:
+            mean_aps.append(1.0)
+    else:
+        for p in processes:
+            mean_aps.append(p.get()[0])
+    
 
     return sum(mean_aps) / len(mean_aps)
 
