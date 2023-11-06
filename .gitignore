@@ -4,3 +4,6 @@ src/model*/*
 src/__pycache__/*
 aux.json
 mypy-config.ini
+.vscode/*
+work_dirs/*
+tools/*
