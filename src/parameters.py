@@ -2,11 +2,11 @@
 ORIGINALES = 'data/original'
 TRAINING_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
 TRAINING_SHAPE=ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
-TRAINING_DATA_ROOT = 'data/mamoas-laboreiro'
+TRAINING_DATA_ROOT = 'data/mamoas-laboreiro_200'
 
 VAL_IMAGE=ORIGINALES + '/COMB-Arcos.tif'
 VAL_SHAPE=ORIGINALES + '/Mamoas-Arcos-cuadrados-15.shp'
-VAL_DATA_ROOT = 'data/mamoas-arcos'
+VAL_DATA_ROOT = 'data/mamoas-arcos_200'
 
 SIZE = 200
 OVERLAP = [0, 100]
@@ -22,7 +22,8 @@ DST_DATA_LOO_CV = DST_DATA_ANNOTATION + "loo_cv/"
 DST_DATA_IMAGES = TRAINING_DATA_ROOT + "/images/"
 COMPLETE_BBOX_OVERLAP=False
 LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
-INCLUDE_ALL_IMAGES = True
+INCLUDE_ALL_IMAGES = False
+NUM_BACKGROUND_IMAGES = 100
 
 #parámetros de training
 MODEL = "faster_rcnn"

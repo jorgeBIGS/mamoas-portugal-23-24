@@ -8,18 +8,21 @@ metainfo = {
 
 backend_args = None
 
+# img_scales = [(200, 200), (400, 400), (600, 600)]
+img_scales = [(200, 200)]
+
 train_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
     dict(type='LoadAnnotations', with_bbox=True),
-    # dict(type='Resize', scale=(1333, 800), keep_ratio=True),
+    # dict(type='RandomChoiceResize', scales=img_scales, keep_ratio=True),
     dict(type='Resize', scale=(200, 200), keep_ratio=True),
     dict(type='RandomFlip', prob=0.5),
     dict(type='PackDetInputs')
 ]
+
 test_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
-    # dict(type='Resize', scopycale=(1333, 800), keep_ratio=True),
-    dict(type='Resize', scale=(200, 200), keep_ratio=True),
+    dict(type='Resize', scale=(200,200), keep_ratio=True),
     # If you don't have a gt annotation, delete the pipeline
     dict(type='LoadAnnotations', with_bbox=True),
     dict(
@@ -27,6 +30,28 @@ test_pipeline = [
         meta_keys=('img_id', 'img_path', 'ori_shape', 'img_shape',
                    'scale_factor'))
 ]
+
+
+# tta_model = dict(
+#     type='DetTTAModel',
+#     tta_cfg=dict(nms=dict(type='nms', iou_threshold=0.5), max_per_img=100))
+
+
+
+# tta_pipeline = [
+#     dict(type='LoadImageFromFile', backend_args=backend_args),
+#     dict(type='TestTimeAug',
+#      transforms=[
+#         [dict(type='Resize', scale=s, keep_ratio=True) for s in img_scales],
+#         [dict(type='RandomFlip', prob=1.),
+#          dict(type='RandomFlip', prob=0.)],
+#         [dict(type='LoadAnnotations', with_bbox=True)],
+#         [dict(type='PackDetInputs',
+#               meta_keys=('img_id', 'img_path', 'ori_shape',
+#                          'img_shape', 'scale_factor', 'flip',
+#                          'flip_direction'))]])
+# ]
+
 train_dataloader = dict(
     batch_size=1,
     num_workers=2,
@@ -35,7 +60,7 @@ train_dataloader = dict(
     batch_sampler=dict(type='AspectRatioBatchSampler'),
     dataset=dict(
         type=dataset_type,
-        data_root='data/mamoas-laboreiro/',
+        data_root='data/mamoas-laboreiro_200/',
         metainfo=metainfo,
         ann_file='annotations/all.json',
         data_prefix=dict(img='images/'),
@@ -50,7 +75,7 @@ val_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type=dataset_type,
-        data_root='data/mamoas-arcos/',
+        data_root='data/mamoas-arcos_200/',
         metainfo=metainfo,
         ann_file='annotations/all.json',
         data_prefix=dict(img='images/'),
@@ -61,7 +86,7 @@ test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='CocoMetric',
-    ann_file='data/mamoas-arcos/' + 'annotations/all.json',
+    ann_file='data/mamoas-arcos_200/' + 'annotations/all.json',
     metric='bbox',
     format_only=False,
     backend_args=backend_args)
