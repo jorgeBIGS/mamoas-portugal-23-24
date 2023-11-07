@@ -1,10 +1,8 @@
 import json
-import rasterio 
-import geopandas as gpd
 import shutil
 import os
-import rasterio
 from images import *
+import geopandas as gpd
 from parameters import *
 import gc
 
@@ -146,15 +144,15 @@ def get_training(shapefile):
     return result
 
 
-def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
+def mamoas_tiles(tif_name, shapefile, include_all = True, destiny_images= DST_IMAGE_DIR, destiny_valid_images = DST_VALID_TILES, size=50, overlap = [0]):
 
     training = get_training(shapefile)
 
     img = rasterio.open(tif_name)
 
-    generate_tiles(img, size, overlap, DST_IMAGE_DIR)
+    generate_tiles(img, size, overlap, destiny_images)
 
-    tile_paths = os.listdir(DST_IMAGE_DIR)
+    tile_paths = os.listdir(destiny_images)
 
     valid_paths = []
     
@@ -163,7 +161,7 @@ def mamoas_tiles(tif_name, shapefile, size=50, overlap = [0]):
     
     for each in tile_paths:
 
-        img_tmp = rasterio.open(f"{DST_IMAGE_DIR}{each}")
+        img_tmp = rasterio.open(f"{destiny_images}{each}")
 
         rgb = img_tmp.read()
 
@@ -210,6 +208,6 @@ if __name__ == '__main__':
     os.makedirs(TRAINING_DATA_ROOT, exist_ok=True)
     os.makedirs(DST_VALID_TILES, exist_ok=True)
     
-    mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, size=SIZE, overlap = OVERLAP)
+    mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, INCLUDE_ALL_IMAGES, size=SIZE, overlap = OVERLAP)
     shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
     
