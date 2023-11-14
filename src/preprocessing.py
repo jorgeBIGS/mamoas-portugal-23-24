@@ -1,16 +1,19 @@
 import json
 import shutil
 import os
-from images import *
+
+from pyproj import CRS
+from auxiliar.images import *
 import geopandas as gpd
 from parameters import *
 import gc
+from shapely.geometry import Polygon
 
 def check_included(bboxes, bbox):
     result = [a['bbox'] for a in bboxes]
     return len(result)==0 or  bbox['bbox'] not in result
 
-def generate_coco_annotations(image_filenames, train, output_file, limites = dict()):
+def generate_coco_annotations(image_filenames, destiny_valid_images, train, output_file, output_directory, limites = dict()):
     categories = []
 
     # Crea la categoría "mamoa" en el archivo de anotaciones
@@ -31,7 +34,7 @@ def generate_coco_annotations(image_filenames, train, output_file, limites = dic
     for i, image_filename in enumerate(image_filenames):
         image_id = i + 1
         if not image_filename in limites:
-            image_width, image_height, bounds = get_image_dimensions(image_filename)
+            image_width, image_height, bounds, _ = get_image_dimensions(image_filename, destiny_valid_images)
             limites[image_filename] = (image_width, image_height, bounds)
         else:
             image_width, image_height, bounds = limites[image_filename]
@@ -58,7 +61,7 @@ def generate_coco_annotations(image_filenames, train, output_file, limites = dic
             if posY + h > image_height: h = image_height - posY
 
             is_valid = False
-            with rasterio.open(DST_DATA_IMAGES + image_filename) as im:
+            with rasterio.open(output_directory + image_filename) as im:
                 # extracting the pixel data (couldnt understand as i dont think thats the correct way to pass the argument)
                 tile_data = im.read(window=((posY, posY+h), (posX, posX+w)),
                                     boundless=True, fill_value=0)[:3]
@@ -93,12 +96,12 @@ def generate_coco_annotations(image_filenames, train, output_file, limites = dic
     
     return limites
 
-def get_image_dimensions(image_filename):
+def get_image_dimensions(image_filename, root=DST_VALID_TILES):
     # Aquí puedes implementar la lógica para obtener las dimensiones de la imagen
     # Por ejemplo, usando PIL o cualquier otra biblioteca de imágenes
-    with rasterio.open(f"{DST_VALID_TILES}{image_filename}") as dataset:
-        image_width, image_height, bounds = dataset.width, dataset.height, dataset.bounds
-    return image_width, image_height, bounds
+    with rasterio.open(f"{root}{image_filename}") as dataset:
+        image_width, image_height, bounds, crs = dataset.width, dataset.height, dataset.bounds, dataset.crs
+    return image_width, image_height, bounds, crs
 
 ## Probado
 def check_limit(bounds, x, y):
@@ -135,7 +138,7 @@ def check_train(tile_bounds, train):
 
     return result
 
-def get_training(shapefile):
+def get_training(shapefile:str)->list:
     result = []
     gdf = gpd.read_file(shapefile)
     
@@ -144,7 +147,7 @@ def get_training(shapefile):
     return result
 
 
-def mamoas_tiles(tif_name, shapefile, include_all = True, destiny_images= DST_IMAGE_DIR, destiny_valid_images = DST_VALID_TILES, size=50, overlap = [0]):
+def mamoas_tiles(tif_name:str, shapefile:str, include_all:str = INCLUDE_ALL_IMAGES, destiny_images:str= DST_IMAGE_DIR, destiny_valid_images:str = DST_VALID_TILES, coco_data:str = DST_DATA_IMAGES, coco_data_annotation:str = DST_DATA_ANNOTATION, leave_one_out:str = LEAVE_ONE_OUT_BOOL, loo_data:str = DST_DATA_LOO_CV, size:int=50, overlap:list[int] = [0]):
 
     training = get_training(shapefile)
 
@@ -156,8 +159,8 @@ def mamoas_tiles(tif_name, shapefile, include_all = True, destiny_images= DST_IM
 
     valid_paths = []
     
-    include=True
-    count_background_images = 0
+    #include=True
+    #count_background_images = 0
     
     for each in tile_paths:
 
@@ -171,43 +174,90 @@ def mamoas_tiles(tif_name, shapefile, include_all = True, destiny_images= DST_IM
         
         bounding_boxes = check_train(img_tmp.bounds, training)
         
-        if(rgb.sum() > 0 and np.mean(rgb) !=255 and len(bounding_boxes)==0):
-            count_background_images+=1
-            if count_background_images>NUM_BACKGROUND_IMAGES:
-                include=False
-            
+        #if(rgb.sum() > 0 and np.mean(rgb) !=255 and len(bounding_boxes)==0):
+        #    count_background_images+=1
+        #    if count_background_images>NUM_BACKGROUND_IMAGES:
+        #        include=False
+        #or include
 
-        if rgb.sum() > 0 and np.mean(rgb) !=255 and (INCLUDE_ALL_IMAGES or len(bounding_boxes)>0 or include):
-            shutil.move(f"{DST_IMAGE_DIR}{each}",f"{DST_VALID_TILES}{each}")
-            convert_geotiff_to_tiff(f"{DST_VALID_TILES}{each}", f"{DST_DATA_IMAGES}{each}")
+        if rgb.sum() > 0 and np.mean(rgb) !=255 and (include_all or len(bounding_boxes)>0): 
+            shutil.move(f"{destiny_images}{each}",f"{destiny_valid_images}{each}")
+            convert_geotiff_to_tiff(f"{destiny_valid_images}{each}", f"{coco_data}{each}")
             valid_paths.append(each)
 
+    if len(valid_paths)>0:
+        save_shape([get_image_dimensions(image, destiny_valid_images)[2] for image in valid_paths], 
+                   get_image_dimensions(valid_paths[0], destiny_valid_images)[3], shapefile.replace(".shp", "_x10.shp"))
+
+    info = generate_coco_annotations(valid_paths, destiny_valid_images, training, f"{coco_data_annotation}all.json", coco_data)
     
-    info = generate_coco_annotations(valid_paths, training, f"{DST_DATA_ANNOTATION}all.json")
-    
-    if LEAVE_ONE_OUT_BOOL:
+    if leave_one_out:
         for index, each in enumerate(valid_paths):
             training_set = list(valid_paths)
             training_set.remove(each)
             test_set = list()
             test_set.append(each)
-            generate_coco_annotations(test_set, training, f"{DST_DATA_LOO_CV}test{index}.json", info)
-            generate_coco_annotations(training_set, training, f"{DST_DATA_LOO_CV}training{index}.json", info)   
-             
+            generate_coco_annotations(test_set,destiny_valid_images, training, f"{loo_data}test{index}.json", coco_data, info)
+            generate_coco_annotations(training_set, destiny_valid_images, training, f"{loo_data}training{index}.json", coco_data, info)
+
+def save_shape(rectangles: list, crs:CRS, name:str)->str:
+    data_dicts = [{'Name': '',
+               'X': (bounding_box[0] + bounding_box[2]) / 2,
+               'Y': (bounding_box[1] + bounding_box[3]) / 2,
+               'geometry': Polygon([(bounding_box[0], bounding_box[1]),
+                                    (bounding_box[2], bounding_box[1]),
+                                    (bounding_box[2], bounding_box[3]),
+                                    (bounding_box[0], bounding_box[3])])} for bounding_box in rectangles]
+
+    # Crear un GeoDataFrame con la geometría de los rectángulos
+    rectangles = gpd.GeoDataFrame(data_dicts)
+
+
+    # Especificar la referencia espacial (CRS)
+    rectangles.crs = crs  # Puedes ajustar el código EPSG según tus necesidades
+
+    # Guardar el GeoDataFrame como un archivo shape
+    rectangles.to_file(name)
+
+    return name
+   
 
 if __name__ == '__main__':
     #https://mmdetection.readthedocs.io/en/latest/user_guides/train.html#coco-annotation-format
     #https://mmdetection.readthedocs.io/en/v2.2.0/tutorials/new_dataset.html
     shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
-    shutil.rmtree(TRAINING_DATA_ROOT, ignore_errors=True)
+    shutil.rmtree(OUTPUT_DATA_ROOT, ignore_errors=True)
     shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
+
+    os.makedirs(OUTPUT_DATA_ROOT, exist_ok=True)
     os.makedirs(DST_DATA_IMAGES, exist_ok=True)
     os.makedirs(DST_DATA_ANNOTATION, exist_ok=True)
     os.makedirs(DST_DATA_LOO_CV, exist_ok=True)
     os.makedirs(DST_IMAGE_DIR, exist_ok=True)
-    os.makedirs(TRAINING_DATA_ROOT, exist_ok=True)
     os.makedirs(DST_VALID_TILES, exist_ok=True)
+
+    shutil.rmtree(DST_IMAGE_DIR_x10, ignore_errors=True)
+    shutil.rmtree(OUTPUT_DATA_ROOT_x10, ignore_errors=True)
+    shutil.rmtree(DST_VALID_TILES_x10, ignore_errors=True)
+
+    os.makedirs(OUTPUT_DATA_ROOT_x10, exist_ok=True)
+    os.makedirs(DST_DATA_IMAGES_x10, exist_ok=True)
+    os.makedirs(DST_DATA_ANNOTATION_x10, exist_ok=True)
+    os.makedirs(DST_DATA_LOO_CV_x10, exist_ok=True)
+    os.makedirs(DST_IMAGE_DIR_x10, exist_ok=True)
+    os.makedirs(DST_VALID_TILES_x10, exist_ok=True)
+
     
-    mamoas_tiles(TRAINING_IMAGE, TRAINING_SHAPE, INCLUDE_ALL_IMAGES, size=SIZE, overlap = OVERLAP)
+    mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE, size=SIZE, overlap = OVERLAP)
+
     shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
+
+    mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE.replace(".shp", "_x10.shp"), size=SIZE*10, overlap = [v*10 for v in OVERLAP],  
+                 destiny_images= DST_IMAGE_DIR_x10, 
+                 destiny_valid_images = DST_VALID_TILES_x10, 
+                 coco_data = DST_DATA_IMAGES_x10, 
+                 coco_data_annotation = DST_DATA_ANNOTATION_x10, 
+                 loo_data = DST_DATA_LOO_CV_x10)
+    
+    shutil.rmtree(DST_IMAGE_DIR_x10, ignore_errors=True)
     

@@ -8,7 +8,7 @@ import rasterio
 import rasterio.transform as transform
 from shapely.geometry import box
 import numpy as np
-import images
+import auxiliar.images as images
 from PIL import Image
 from parameters import *
 
