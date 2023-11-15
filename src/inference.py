@@ -14,7 +14,7 @@ from parameters import *
 
 # Specify the path to model config and checkpoint file
 config_file = MODEL_PATH + '/' + MODEL + '.py'
-check_point = MODEL_PATH + '/' + 'epoch_24.pth'
+check_point = MODEL_PATH + '/' + CHECK_POINT_FILE
 
 # Ruta al archivo TIFF georeferenciado de entrada
 input_tiff = TEST_IMAGE

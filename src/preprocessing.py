@@ -252,12 +252,15 @@ if __name__ == '__main__':
 
     shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
 
-    mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE.replace(".shp", "_x10.shp"), size=SIZE*10, overlap = [v*10 for v in OVERLAP],  
+    mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE.replace(".shp", "_x10.shp"), 
+                 size = SIZE_x10,
+                 overlap = OVERLAP_x10,  
                  destiny_images= DST_IMAGE_DIR_x10, 
                  destiny_valid_images = DST_VALID_TILES_x10, 
                  coco_data = DST_DATA_IMAGES_x10, 
                  coco_data_annotation = DST_DATA_ANNOTATION_x10, 
-                 loo_data = DST_DATA_LOO_CV_x10)
+                 loo_data = DST_DATA_LOO_CV_x10
+                 )
     
     shutil.rmtree(DST_IMAGE_DIR_x10, ignore_errors=True)
     
