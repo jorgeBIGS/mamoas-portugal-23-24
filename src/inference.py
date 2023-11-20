@@ -10,7 +10,7 @@ from shapely.geometry import box
 import numpy as np
 import auxiliar.images as images
 from PIL import Image
-from parameters import *
+from mmdetection.configs.mamoas.mamoas_detection import *
 
 # Specify the path to model config and checkpoint file
 config_file = MODEL_PATH + '/' + MODEL + '.py'
@@ -20,7 +20,7 @@ check_point = MODEL_PATH + '/' + CHECK_POINT_FILE
 input_tiff = TEST_IMAGE
 
 # Guarda el archivo shapefile
-output_shapefile = ORIGINALES + '/' + SHAPE_NAME
+output_shapefile = SHAPES_OUTPUT + '/' + SHAPE_NAME
 
 
 # Build the model from a config file and a checkpoint file

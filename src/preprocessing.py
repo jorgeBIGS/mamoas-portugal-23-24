@@ -5,7 +5,7 @@ import os
 from pyproj import CRS
 from auxiliar.images import *
 import geopandas as gpd
-from parameters import *
+from mmdetection.configs.mamoas.mamoas_detection import *
 import gc
 from shapely.geometry import Polygon
 
@@ -96,7 +96,7 @@ def generate_coco_annotations(image_filenames, destiny_valid_images, train, outp
     
     return limites
 
-def get_image_dimensions(image_filename, root=DST_VALID_TILES):
+def get_image_dimensions(image_filename, root=DST_VALID_TILES_L1):
     # Aquí puedes implementar la lógica para obtener las dimensiones de la imagen
     # Por ejemplo, usando PIL o cualquier otra biblioteca de imágenes
     with rasterio.open(f"{root}{image_filename}") as dataset:
@@ -147,7 +147,7 @@ def get_training(shapefile:str)->list:
     return result
 
 
-def mamoas_tiles(tif_name:str, shapefile:str, include_all:str = INCLUDE_ALL_IMAGES, destiny_images:str= DST_IMAGE_DIR, destiny_valid_images:str = DST_VALID_TILES, coco_data:str = DST_DATA_IMAGES, coco_data_annotation:str = DST_DATA_ANNOTATION, leave_one_out:str = LEAVE_ONE_OUT_BOOL, loo_data:str = DST_DATA_LOO_CV, size:int=50, overlap:list[int] = [0]):
+def mamoas_tiles(tif_name:str, shapefile:str, include_all:str = INCLUDE_ALL_IMAGES, destiny_images:str= DST_IMAGE_DIR_L1, destiny_valid_images:str = DST_VALID_TILES_L1, coco_data:str = DST_DATA_IMAGES_L1, coco_data_annotation:str = DST_DATA_ANNOTATION_L1, leave_one_out:str = LEAVE_ONE_OUT_BOOL, loo_data:str = DST_DATA_LOO_CV_L1, size:int=50, overlap:list[int] = [0]):
 
     training = get_training(shapefile)
 
@@ -185,10 +185,7 @@ def mamoas_tiles(tif_name:str, shapefile:str, include_all:str = INCLUDE_ALL_IMAG
             convert_geotiff_to_tiff(f"{destiny_valid_images}{each}", f"{coco_data}{each}")
             valid_paths.append(each)
 
-    if len(valid_paths)>0:
-        save_shape([get_image_dimensions(image, destiny_valid_images)[2] for image in valid_paths], 
-                   get_image_dimensions(valid_paths[0], destiny_valid_images)[3], shapefile.replace(".shp", "_x10.shp"))
-
+    
     info = generate_coco_annotations(valid_paths, destiny_valid_images, training, f"{coco_data_annotation}all.json", coco_data)
     
     if leave_one_out:
@@ -199,6 +196,8 @@ def mamoas_tiles(tif_name:str, shapefile:str, include_all:str = INCLUDE_ALL_IMAG
             test_set.append(each)
             generate_coco_annotations(test_set,destiny_valid_images, training, f"{loo_data}test{index}.json", coco_data, info)
             generate_coco_annotations(training_set, destiny_valid_images, training, f"{loo_data}training{index}.json", coco_data, info)
+    
+    return valid_paths
 
 def save_shape(rectangles: list, crs:CRS, name:str)->str:
     data_dicts = [{'Name': '',
@@ -225,42 +224,78 @@ def save_shape(rectangles: list, crs:CRS, name:str)->str:
 if __name__ == '__main__':
     #https://mmdetection.readthedocs.io/en/latest/user_guides/train.html#coco-annotation-format
     #https://mmdetection.readthedocs.io/en/v2.2.0/tutorials/new_dataset.html
-    shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
-    shutil.rmtree(OUTPUT_DATA_ROOT, ignore_errors=True)
-    shutil.rmtree(DST_VALID_TILES, ignore_errors=True)
+    shutil.rmtree(DST_IMAGE_DIR_L1, ignore_errors=True)
+    shutil.rmtree(OUTPUT_DATA_ROOT_L1, ignore_errors=True)
+    shutil.rmtree(DST_VALID_TILES_L1, ignore_errors=True)
 
-    os.makedirs(OUTPUT_DATA_ROOT, exist_ok=True)
-    os.makedirs(DST_DATA_IMAGES, exist_ok=True)
-    os.makedirs(DST_DATA_ANNOTATION, exist_ok=True)
-    os.makedirs(DST_DATA_LOO_CV, exist_ok=True)
-    os.makedirs(DST_IMAGE_DIR, exist_ok=True)
-    os.makedirs(DST_VALID_TILES, exist_ok=True)
+    os.makedirs(OUTPUT_DATA_ROOT_L1, exist_ok=True)
+    os.makedirs(DST_DATA_IMAGES_L1, exist_ok=True)
+    os.makedirs(DST_DATA_ANNOTATION_L1, exist_ok=True)
+    os.makedirs(DST_DATA_LOO_CV_L1, exist_ok=True)
+    os.makedirs(DST_IMAGE_DIR_L1, exist_ok=True)
+    os.makedirs(DST_VALID_TILES_L1, exist_ok=True)
 
-    shutil.rmtree(DST_IMAGE_DIR_x10, ignore_errors=True)
-    shutil.rmtree(OUTPUT_DATA_ROOT_x10, ignore_errors=True)
-    shutil.rmtree(DST_VALID_TILES_x10, ignore_errors=True)
+    shutil.rmtree(DST_IMAGE_DIR_L2, ignore_errors=True)
+    shutil.rmtree(OUTPUT_DATA_ROOT_L2, ignore_errors=True)
+    shutil.rmtree(DST_VALID_TILES_L2, ignore_errors=True)
 
-    os.makedirs(OUTPUT_DATA_ROOT_x10, exist_ok=True)
-    os.makedirs(DST_DATA_IMAGES_x10, exist_ok=True)
-    os.makedirs(DST_DATA_ANNOTATION_x10, exist_ok=True)
-    os.makedirs(DST_DATA_LOO_CV_x10, exist_ok=True)
-    os.makedirs(DST_IMAGE_DIR_x10, exist_ok=True)
-    os.makedirs(DST_VALID_TILES_x10, exist_ok=True)
+    os.makedirs(OUTPUT_DATA_ROOT_L2, exist_ok=True)
+    os.makedirs(DST_DATA_IMAGES_L2, exist_ok=True)
+    os.makedirs(DST_DATA_ANNOTATION_L2, exist_ok=True)
+    os.makedirs(DST_DATA_LOO_CV_L2, exist_ok=True)
+    os.makedirs(DST_IMAGE_DIR_L2, exist_ok=True)
+    os.makedirs(DST_VALID_TILES_L2, exist_ok=True)
+
+    shutil.rmtree(DST_IMAGE_DIR_L3, ignore_errors=True)
+    shutil.rmtree(OUTPUT_DATA_ROOT_L3, ignore_errors=True)
+    shutil.rmtree(DST_VALID_TILES_L3, ignore_errors=True)
+
+    os.makedirs(OUTPUT_DATA_ROOT_L3, exist_ok=True)
+    os.makedirs(DST_DATA_IMAGES_L3, exist_ok=True)
+    os.makedirs(DST_DATA_ANNOTATION_L3, exist_ok=True)
+    os.makedirs(DST_DATA_LOO_CV_L3, exist_ok=True)
+    os.makedirs(DST_IMAGE_DIR_L3, exist_ok=True)
+    os.makedirs(DST_VALID_TILES_L3, exist_ok=True)
+
 
     
-    mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE, size=SIZE, overlap = OVERLAP)
+    valid_images = mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE, size=SIZE_L1, overlap = OVERLAP_L1)
 
-    shutil.rmtree(DST_IMAGE_DIR, ignore_errors=True)
+    if len(valid_images)>0:
+        save_shape([get_image_dimensions(image, DST_VALID_TILES_L1)[2] for image in valid_images], 
+                   get_image_dimensions(valid_images[0], DST_VALID_TILES_L1)[3], TRUE_SHAPE.replace(".shp", "_l1.shp"))
 
-    mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE.replace(".shp", "_x10.shp"), 
-                 size = SIZE_x10,
-                 overlap = OVERLAP_x10,  
-                 destiny_images= DST_IMAGE_DIR_x10, 
-                 destiny_valid_images = DST_VALID_TILES_x10, 
-                 coco_data = DST_DATA_IMAGES_x10, 
-                 coco_data_annotation = DST_DATA_ANNOTATION_x10, 
-                 loo_data = DST_DATA_LOO_CV_x10
+
+    shutil.rmtree(DST_IMAGE_DIR_L1, ignore_errors=True)
+
+    valid_images = mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE.replace(".shp", "_l1.shp"), 
+                 size = SIZE_L2,
+                 overlap = OVERLAP_L2,  
+                 destiny_images= DST_IMAGE_DIR_L2, 
+                 destiny_valid_images = DST_VALID_TILES_L2, 
+                 coco_data = DST_DATA_IMAGES_L2, 
+                 coco_data_annotation = DST_DATA_ANNOTATION_L2, 
+                 loo_data = DST_DATA_LOO_CV_L2
                  )
     
-    shutil.rmtree(DST_IMAGE_DIR_x10, ignore_errors=True)
+    if len(valid_images)>0:
+        save_shape([get_image_dimensions(image, DST_VALID_TILES_L2)[2] for image in valid_images], 
+                   get_image_dimensions(valid_images[0], DST_VALID_TILES_L2)[3], TRUE_SHAPE.replace(".shp", "_l2.shp"))
+
+    shutil.rmtree(DST_IMAGE_DIR_L2, ignore_errors=True)
+
+    valid_images = mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE.replace(".shp", "_l2.shp"), 
+                 size = SIZE_L3,
+                 overlap = OVERLAP_L3,  
+                 destiny_images= DST_IMAGE_DIR_L3, 
+                 destiny_valid_images = DST_VALID_TILES_L3, 
+                 coco_data = DST_DATA_IMAGES_L3, 
+                 coco_data_annotation = DST_DATA_ANNOTATION_L3, 
+                 loo_data = DST_DATA_LOO_CV_L3
+                 )
     
+    #if len(valid_images)>0:
+    #    save_shape([get_image_dimensions(image, DST_VALID_TILES_L3)[2] for image in valid_images], 
+    #               get_image_dimensions(valid_images[0], DST_VALID_TILES_L3)[3], TRUE_SHAPE.replace(".shp", "_l3.shp"))
+    
+    shutil.rmtree(DST_IMAGE_DIR_L3, ignore_errors=True)

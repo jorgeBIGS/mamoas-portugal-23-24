@@ -48,10 +48,8 @@ def bbox_map_eval(det_result, annotation, nproc=4):
     else:
         bbox_det_result = [det_result]
     # mAP
-    # iou_thrs = np.linspace(
-    #     .5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
-    
-    iou_thrs = [0.5]
+    iou_thrs = np.linspace(
+        .5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
 
     processes = []
     workers = Pool(processes=nproc)
@@ -67,13 +65,8 @@ def bbox_map_eval(det_result, annotation, nproc=4):
     workers.join()
 
     mean_aps = []
-    if len(annotation['instances'])==0 and len(bbox_det_result[0][0])==0:
-        for p in processes:
-            mean_aps.append(1.0)
-    else:
-        for p in processes:
-            mean_aps.append(p.get()[0])
-    
+    for p in processes:
+        mean_aps.append(p.get()[0])
 
     return sum(mean_aps) / len(mean_aps)
 
@@ -131,8 +124,12 @@ class ResultVisualizer:
 
             if task == 'det':
                 gt_instances = InstanceData()
-                gt_instances.bboxes = results[index]['gt_instances']['bboxes']
-                gt_instances.labels = results[index]['gt_instances']['labels']
+                gt_instances.bboxes = [
+                    d['bbox'] for d in data_info['gt_instances']
+                ]
+                gt_instances.labels = [
+                    d['bbox_label'] for d in data_info['gt_instances']
+                ]
 
                 pred_instances = InstanceData()
                 pred_instances.bboxes = results[index]['pred_instances'][
@@ -148,7 +145,9 @@ class ResultVisualizer:
 
             elif task == 'seg':
                 gt_panoptic_seg = PixelData()
-                gt_panoptic_seg.sem_seg = results[index]['gt_seg_map']
+                gt_panoptic_seg.sem_seg = [
+                    d['gt_seg_map'] for d in data_info['gt_instances']
+                ]
 
                 pred_panoptic_seg = PixelData()
                 pred_panoptic_seg.sem_seg = results[index][
@@ -376,9 +375,12 @@ def main():
     cfg.test_dataloader.pop('batch_size', 0)
     if cfg.train_dataloader.dataset.type in ('MultiImageMixDataset',
                                              'ClassBalancedDataset',
-                                             'RepeatDataset', 'ConcatDataset'):
+                                             'RepeatDataset'):
         cfg.test_dataloader.dataset.pipeline = get_loading_pipeline(
             cfg.train_dataloader.dataset.dataset.pipeline)
+    elif cfg.train_dataloader.dataset.type in ('ConcatDataset', ):
+        cfg.test_dataloader.dataset.pipeline = get_loading_pipeline(
+            cfg.train_dataloader.dataset.datasets[0].pipeline)
     else:
         cfg.test_dataloader.dataset.pipeline = get_loading_pipeline(
             cfg.train_dataloader.dataset.pipeline)

@@ -9,7 +9,7 @@ sys.path.append(parent_dir)
 
 # Import the module from the parent directory
 from preprocessing import generate_coco_annotations, get_training
-from parameters import DST_VALID_TILES, TRAINING_SHAPE
+from mmdetection.configs.mamoas.mamoas_detection import TRAINING_SHAPE
 
 training = get_training(TRAINING_SHAPE)
 
