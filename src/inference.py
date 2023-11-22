@@ -14,7 +14,9 @@ from mmdetection.configs.mamoas.mamoas_detection import *
 
 # Specify the path to model config and checkpoint file
 config_file = MODEL_PATH + '/' + MODEL + '.py'
-check_point = MODEL_PATH + '/' + CHECK_POINT_FILE
+
+with open(MODEL_PATH + '/' + CHECK_POINT_FILE) as f:
+    check_point = f.readline().strip()
 
 # Ruta al archivo TIFF georeferenciado de entrada
 input_tiff = TEST_IMAGE
@@ -72,7 +74,7 @@ with rasterio.open(input_tiff) as original:
 
     
         #filtramos los valores por debajo de 0.5
-        merged_df = pd.DataFrame(merged_df[merged_df['score'] >= THRESHOLD])
+        #merged_df = pd.DataFrame(merged_df[merged_df['score'] >= THRESHOLD])
         
         #filtramos los valores y nos quedamos con los extremadamente buenos.
         #best = merged_df['score'].quantile(PERCENTILE)

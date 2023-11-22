@@ -45,22 +45,39 @@ COMPLETE_BBOX_OVERLAP=False
 LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
 
 #parámetros de training
-MODEL = 'retinanet'#"faster_rcnn"
+LEVEL = 'L2'
+
+#"faster_rcnn"
+MODEL = 'retinanet'
+
 MODEL_CONFIG = f"src/mmdetection/configs/mamoas/{MODEL}.py"
 
-MODEL_PATH = MODEL_PATH_L1
-TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L1
-VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L1
+if LEVEL == 'L1':
+    MODEL_PATH = MODEL_PATH_L1
+    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L1
+    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L1
+    SIZE = SIZE_L1
+    OVERLAP = OVERLAP_L1
+elif LEVEL == 'L2':
+    MODEL_PATH = MODEL_PATH_L2
+    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L2
+    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L2
+    SIZE = SIZE_L2
+    OVERLAP = OVERLAP_L2
+else:
+    MODEL_PATH = MODEL_PATH_L3
+    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L3
+    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L3
+    SIZE = SIZE_L3
+    OVERLAP = OVERLAP_L3
 
 #parámetros de inference
-SHAPE_NAME = 'objetos_detectados-laboreiro-all-in_l1_retinanet.shp'
-SIZE = SIZE_L1
-OVERLAP = OVERLAP_L1
+SHAPE_NAME = 'laboreiro-' + LEVEL + '-' + MODEL + '.shp'
 
-THRESHOLD = 0.5
-CHECK_POINT_FILE = 'epoch_12.pth'
-TEMPORAL = 'data/tmp'
+#THRESHOLD = 0.5
 SHAPES_OUTPUT = 'data/shapes'
+CHECK_POINT_FILE = 'last_checkpoint'
+TEMPORAL = 'data/tmp'
 TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
 
 dataset_type = 'CocoDataset'
