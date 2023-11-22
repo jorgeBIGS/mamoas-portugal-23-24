@@ -1,4 +1,6 @@
 import subprocess
+import sys
+
 from mmdetection.configs.mamoas.mamoas_detection import *
 
 model=MODEL

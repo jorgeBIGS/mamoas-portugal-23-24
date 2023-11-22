@@ -1,3 +1,9 @@
+import sys
+LEVEL = sys.argv[1]
+MODEL = sys.argv[2]
+print(LEVEL)
+print(MODEL)
+
 #parámetros de preprocessing
 SIZE_L1 = 200
 OVERLAP_L1 = [0, SIZE_L1//2]
@@ -44,14 +50,7 @@ INCLUDE_ALL_IMAGES = False
 COMPLETE_BBOX_OVERLAP=False
 LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
 
-#Main parameter (contextual level)
-LEVEL = 'L2'
-
 #parámetros de training
-
-#"faster_rcnn"
-MODEL = 'retinanet'
-
 MODEL_CONFIG = f"src/mmdetection/configs/mamoas/{MODEL}.py"
 
 if LEVEL == 'L1':
