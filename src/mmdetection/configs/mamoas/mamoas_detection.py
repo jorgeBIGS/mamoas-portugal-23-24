@@ -44,8 +44,10 @@ INCLUDE_ALL_IMAGES = False
 COMPLETE_BBOX_OVERLAP=False
 LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
 
-#parámetros de training
+#Main parameter (contextual level)
 LEVEL = 'L2'
+
+#parámetros de training
 
 #"faster_rcnn"
 MODEL = 'retinanet'
@@ -72,13 +74,13 @@ else:
     OVERLAP = OVERLAP_L3
 
 #parámetros de inference
-SHAPE_NAME = 'laboreiro-' + LEVEL + '-' + MODEL + '.shp'
+CHECK_POINT_FILE = 'last_checkpoint'
 
 #THRESHOLD = 0.5
-SHAPES_OUTPUT = 'data/shapes'
-CHECK_POINT_FILE = 'last_checkpoint'
 TEMPORAL = 'data/tmp'
 TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
+SHAPES_OUTPUT = 'data/shapes'
+SHAPE_NAME = TEST_IMAGE.split('/')[-1].replace('.tif','') + LEVEL + '-' + MODEL + '.shp'
 
 dataset_type = 'CocoDataset'
 metainfo = {
