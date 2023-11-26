@@ -1,8 +1,6 @@
 import sys
 LEVEL = sys.argv[1]
 MODEL = sys.argv[2]
-print(LEVEL)
-print(MODEL)
 
 #parámetros de preprocessing
 SIZE_L1 = 200
