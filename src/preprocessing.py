@@ -50,6 +50,7 @@ def generate_coco_annotations(image_filenames, destiny_valid_images, train, outp
 
         # Genera las anotaciones para cada bounding box
         lista = check_train(bounds, train)
+        bboxes_1 = []
         for bbox in lista:
             left, bottom, right, top = bbox.bounds
             w, h = max(abs(right-left), RES_MIN), max(abs(top-bottom), RES_MIN)
@@ -67,17 +68,21 @@ def generate_coco_annotations(image_filenames, destiny_valid_images, train, outp
                                     boundless=True, fill_value=0)[:3]
                 # remove filled boxes as ground truth
                 is_valid = np.mean(tile_data) !=255 and np.mean(tile_data) !=0
-
-            if is_valid:
+            
+            # añadido para eliminar problemas de mamoas repetidas en el shape de partida.
+            aux_bbox = [posX, posY, w, h]
+            aux_bbox_tuple = (image_id, aux_bbox)
+            if is_valid and not aux_bbox_tuple in bboxes_1:
                 annotation = {
                     'id': id_annot,
                     'image_id': image_id,
                     'category_id': 1,  # ID de la categoría
-                    'bbox': [posX, posY, w, h],
+                    'bbox': aux_bbox,
                     'area': w * h,
                     'iscrowd': 0
                 }
                 annotations.append(annotation)
+                bboxes_1.append(aux_bbox_tuple)
                 id_annot = id_annot + 1
             
     # Guarda el archivo de anotaciones en formato JSON
