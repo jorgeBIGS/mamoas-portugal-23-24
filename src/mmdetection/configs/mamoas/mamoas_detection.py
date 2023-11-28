@@ -1,40 +1,38 @@
-import sys
-LEVEL = sys.argv[1]
-MODEL = sys.argv[2]
+LEVEL = 'L1'
 
 #parámetros de preprocessing
 SIZE_L1 = 200
 OVERLAP_L1 = [0, SIZE_L1//2]
-MODEL_PATH_L1 = 'data/model_l1'
+MODEL_PATH_L1 = 'data/model_l1/'
 
-OUTPUT_DATA_ROOT_L1= 'data/mamoas-laboreiro_l1'
-DST_IMAGE_DIR_L1 = OUTPUT_DATA_ROOT_L1 + "/tiles/"
-DST_VALID_TILES_L1 = OUTPUT_DATA_ROOT_L1 + "/valid_tiles/"
-DST_DATA_ANNOTATION_L1 = OUTPUT_DATA_ROOT_L1 + "/annotations/"
+OUTPUT_DATA_ROOT_L1= 'data/mamoas-laboreiro_l1/'
+DST_IMAGE_DIR_L1 = OUTPUT_DATA_ROOT_L1 + "tiles/"
+DST_VALID_TILES_L1 = OUTPUT_DATA_ROOT_L1 + "valid_tiles/"
+DST_DATA_ANNOTATION_L1 = OUTPUT_DATA_ROOT_L1 + "annotations/"
 DST_DATA_LOO_CV_L1 = DST_DATA_ANNOTATION_L1 + "loo_cv/"
-DST_DATA_IMAGES_L1 = OUTPUT_DATA_ROOT_L1 + "/images/"
+DST_DATA_IMAGES_L1 = OUTPUT_DATA_ROOT_L1 + "images/"
 
 SIZE_L2 = 500
 OVERLAP_L2 = [0, SIZE_L2//2]
-MODEL_PATH_L2 = 'data/model_l2'
+MODEL_PATH_L2 = 'data/model_l2/'
 
-OUTPUT_DATA_ROOT_L2 = 'data/mamoas-laboreiro_l2'
-DST_IMAGE_DIR_L2 = OUTPUT_DATA_ROOT_L2 + "/tiles/"
-DST_VALID_TILES_L2 = OUTPUT_DATA_ROOT_L2 + "/valid_tiles/"
-DST_DATA_ANNOTATION_L2 = OUTPUT_DATA_ROOT_L2 + "/annotations/"
+OUTPUT_DATA_ROOT_L2 = 'data/mamoas-laboreiro_l2/'
+DST_IMAGE_DIR_L2 = OUTPUT_DATA_ROOT_L2 + "tiles/"
+DST_VALID_TILES_L2 = OUTPUT_DATA_ROOT_L2 + "valid_tiles/"
+DST_DATA_ANNOTATION_L2 = OUTPUT_DATA_ROOT_L2 + "annotations/"
 DST_DATA_LOO_CV_L2 = DST_DATA_ANNOTATION_L2 + "loo_cv/"
-DST_DATA_IMAGES_L2 = OUTPUT_DATA_ROOT_L2 + "/images/"
+DST_DATA_IMAGES_L2 = OUTPUT_DATA_ROOT_L2 + "images/"
 
 SIZE_L3 = 1000
 OVERLAP_L3 = [0, SIZE_L3//2]
-MODEL_PATH_L3 = 'data/model_l3'
+MODEL_PATH_L3 = 'data/model_l3/'
 
-OUTPUT_DATA_ROOT_L3 = 'data/mamoas-laboreiro_l3'
-DST_IMAGE_DIR_L3 = OUTPUT_DATA_ROOT_L3 + "/tiles/"
-DST_VALID_TILES_L3 = OUTPUT_DATA_ROOT_L3 + "/valid_tiles/"
-DST_DATA_ANNOTATION_L3 = OUTPUT_DATA_ROOT_L3 + "/annotations/"
+OUTPUT_DATA_ROOT_L3 = 'data/mamoas-laboreiro_l3/'
+DST_IMAGE_DIR_L3 = OUTPUT_DATA_ROOT_L3 + "tiles/"
+DST_VALID_TILES_L3 = OUTPUT_DATA_ROOT_L3 + "valid_tiles/"
+DST_DATA_ANNOTATION_L3 = OUTPUT_DATA_ROOT_L3 + "annotations/"
 DST_DATA_LOO_CV_L3 = DST_DATA_ANNOTATION_L3 + "loo_cv/"
-DST_DATA_IMAGES_L3 = OUTPUT_DATA_ROOT_L3 + "/images/"
+DST_DATA_IMAGES_L3 = OUTPUT_DATA_ROOT_L3 + "images/"
 
 RES_MIN = 5
 PERCENTILE = 0.5
@@ -49,7 +47,7 @@ COMPLETE_BBOX_OVERLAP=False
 LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
 
 #parámetros de training
-MODEL_CONFIG = f"src/mmdetection/configs/mamoas/{MODEL}.py"
+MODEL_CONFIG_ROOT = "src/mmdetection/configs/mamoas/"
 
 if LEVEL == 'L1':
     MODEL_PATH = MODEL_PATH_L1
@@ -70,14 +68,25 @@ else:
     SIZE = SIZE_L3
     OVERLAP = OVERLAP_L3
 
-#parámetros de inference
-CHECK_POINT_FILE = 'last_checkpoint'
+#parámetros de optimización
+NUM_GENERATIONS=50
+NUM_INDIVIDUALS=100
+NUM_PARENT_MATING = 2
+ELITISM = 1
+MUTATION_PERCENT = 20
+NUM_THREADS = 20
 
-#THRESHOLD = 0.5
-TEMPORAL = 'data/tmp'
+
+TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
+BUFFER_SIZE = 1
+SHP_DIRECTORY = 'data/shapes/' + LEVEL 
+
+
+#parámetros de inference
 TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
+TEMPORAL = 'data/tmp'
 SHAPES_OUTPUT = 'data/shapes'
-SHAPE_NAME = TEST_IMAGE.split('/')[-1].replace('.tif','') + LEVEL + '-' + MODEL + '.shp'
+
 
 dataset_type = 'CocoDataset'
 metainfo = {
@@ -148,6 +157,7 @@ train_dataloader = dict(
         # filter_cfg=dict(filter_empty_gt=True, min_size=32),
         pipeline=train_pipeline,
         backend_args=backend_args))
+
 val_dataloader = dict(
     batch_size=1,
     num_workers=2,
