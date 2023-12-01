@@ -1,7 +1,5 @@
 
 import os
-import shutil
-import sys
 from mmdet.apis import init_detector, inference_detector
 import geopandas as gpd
 import pandas as pd

@@ -152,7 +152,7 @@ def get_training(shapefile:str)->list:
     return result
 
 
-def mamoas_tiles(tif_name:str, shapefile:str, include_all:str = INCLUDE_ALL_IMAGES, destiny_images:str= DST_IMAGE_DIR_L1, destiny_valid_images:str = DST_VALID_TILES_L1, coco_data:str = DST_DATA_IMAGES_L1, coco_data_annotation:str = DST_DATA_ANNOTATION_L1, leave_one_out:str = LEAVE_ONE_OUT_BOOL, loo_data:str = DST_DATA_LOO_CV_L1, size:int=50, overlap:list[int] = [0]):
+def mamoas_tiles(tif_name:str, shapefile:str, include_all:str = INCLUDE_ALL_IMAGES, destiny_images:str= DST_IMAGE_DIR_L1, destiny_valid_images:str = DST_VALID_TILES_L1, coco_data:str = DST_DATA_IMAGES_L1, coco_data_annotation:str = DST_DATA_ANNOTATION_L1, leave_one_out:str = LEAVE_ONE_OUT_BOOL, loo_data:str = DST_DATA_LOO_CV_L1, size:int=50, overlap:List[int] = [0]):
 
     training = get_training(shapefile)
 

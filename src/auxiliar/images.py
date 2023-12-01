@@ -1,5 +1,6 @@
 
 import os
+from typing import List
 import numpy as np
 import rasterio
 from tqdm import tqdm
@@ -70,7 +71,7 @@ def get_tile_name_path(dst_dir:str, index:int):
     dst_tile_path = os.path.join(dst_dir, dst_tile_name)
     return dst_tile_name, dst_tile_path
 
-def generate_tiles(tif:rasterio.io.DatasetReader, size:int, overlap: list[int], dst_dir:str)->list[str]:
+def generate_tiles(tif:rasterio.io.DatasetReader, size:int, overlap: List[int], dst_dir:str)->List[str]:
     result = []
     i = 0
     for over_1 in overlap:

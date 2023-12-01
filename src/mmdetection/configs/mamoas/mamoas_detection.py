@@ -83,7 +83,7 @@ SHP_DIRECTORY = 'data/shapes/' + LEVEL
 
 
 #parámetros de inference
-TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
+TEST_IMAGE = 'data/original/COMB-Arcos.tif'
 TEMPORAL = 'data/tmp'
 SHAPES_OUTPUT = 'data/shapes'
 
