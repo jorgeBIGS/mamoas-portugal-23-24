@@ -3,8 +3,11 @@ import pygad
 from geopandas import GeoDataFrame 
 import geopandas as gpd
 import pandas as pd
+from shapely.geometry import Point
 
 from mmdetection.configs.mamoas.mamoas_detection import *
+
+SHP_DIRECTORY = 'data/shapes/retinanet'
 
 def leer_shapefiles_en_directorio(directorio):
     archivos_shp = [archivo for archivo in os.listdir(directorio) if archivo.endswith('.shp')]
@@ -20,6 +23,31 @@ def leer_shapefiles_en_directorio(directorio):
 
 def fitness_function_factory(function_inputs:list[GeoDataFrame], true_input, desired_output):
 
+    #Probar máximo y mínimo en lugar de mínimo solamente, pero con mínimo solapamiento...
+    def fitness_func_4(ga_instance, solution, solution_idx):
+        fitness = 0.0
+        fusion = GeoDataFrame()
+        for i, rectangulos in enumerate(function_inputs):
+            if len(fusion)<=0:
+                fusion = rectangulos[rectangulos.score >= solution[i]].copy
+            else:
+                # Realiza la intersección utilizando overlay
+                fusion = gpd.overlay(fusion, rectangulos[rectangulos.score >= solution[i]].copy, how='intersection')                        
+
+        mamoas_cubiertas = gpd.sjoin(true_input, fusion, how="inner", predicate='intersects')
+        tam = len(fusion)  
+        
+        # Suma los scores de los rectángulos superpuestos que supera en threshold 
+        positivos = 0
+        if not mamoas_cubiertas.empty:
+            positivos = len(mamoas_cubiertas)
+            fitness += positivos
+        
+        if not fusion.empty:
+            fitness -= (tam-positivos)
+            
+        return fitness
+    
     def fitness_func_3(ga_instance, solution, solution_idx):
         fitness = 0.0
         fusion:GeoDataFrame = GeoDataFrame()
@@ -73,7 +101,7 @@ def fitness_function_factory(function_inputs:list[GeoDataFrame], true_input, des
     
 
 
-    return fitness_func_3
+    return fitness_func_4
 
 
 def callback_gen(ga_instance):
@@ -95,7 +123,7 @@ def evolve(inputs, true_input, aim):
     parent_selection_type = "sss"
     keep_parents = ELITISM
 
-    crossover_type = "single_point"
+    crossover_type = "uniform" #"single_point"
 
     mutation_type = "random"
     mutation_percent_genes = MUTATION_PERCENT

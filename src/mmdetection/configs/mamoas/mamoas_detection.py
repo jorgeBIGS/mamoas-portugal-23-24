@@ -74,13 +74,9 @@ NUM_INDIVIDUALS=100
 NUM_PARENT_MATING = 2
 ELITISM = 1
 MUTATION_PERCENT = 20
-NUM_THREADS = 20
-
+NUM_THREADS = 1
 
 TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
-BUFFER_SIZE = 1
-SHP_DIRECTORY = 'data/shapes/' + LEVEL 
-
 
 #parámetros de inference
 TEST_IMAGE = 'data/original/COMB-Arcos.tif'
