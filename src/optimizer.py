@@ -1,13 +1,12 @@
 import os
 import pygad
-from geopandas import GeoDataFrame 
+from geopandas import GeoDataFrame
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import Point
 
 from mmdetection.configs.mamoas.mamoas_detection import *
 
-SHP_DIRECTORY = 'data/shapes/retinanet'
+SHP_DIRECTORY = 'data/shapes'
 
 def leer_shapefiles_en_directorio(directorio):
     archivos_shp = [archivo for archivo in os.listdir(directorio) if archivo.endswith('.shp')]
@@ -23,31 +22,65 @@ def leer_shapefiles_en_directorio(directorio):
 
 def fitness_function_factory(function_inputs:list[GeoDataFrame], true_input, desired_output):
 
+
+    def fitness_func_5(ga_instance, solution, solution_idx):
+        fitness = float('-inf') 
+        fusion:GeoDataFrame = GeoDataFrame()
+        for i, rectangulos in enumerate(function_inputs):
+            if solution[i]<=solution[i+len(function_inputs)]:
+                datos = rectangulos[(rectangulos['score'] >= solution[i]) & (rectangulos['score'] <= solution[i+len(function_inputs)])].copy()
+                if len(datos)>0:
+                    if len(fusion)==0:
+                        fusion = datos.copy()
+                    else:
+                        fusion = gpd.overlay(fusion, datos, how='intersection', keep_geom_type=True)
+        tam = len(fusion)  
+    
+        if tam>0:
+            mamoas_cubiertas = gpd.sjoin(true_input, fusion, how="left", predicate='intersects')
+            mamoas_no_cubiertas = mamoas_cubiertas[mamoas_cubiertas['index_right'].isnull()]
+            
+            # Cuenta las mamoas no cubiertas 
+            negativos = 0
+            if not mamoas_no_cubiertas.empty:
+                negativos = len(mamoas_no_cubiertas)
+                fitness = -negativos
+            
+                # Cuenta el número total de cajas generadas que no solaparon positivos o fueron redundantes
+                positivos = len(true_input)- negativos
+                fitness -= (tam-positivos)
+            
+        return fitness
+
     #Probar máximo y mínimo en lugar de mínimo solamente, pero con mínimo solapamiento...
     def fitness_func_4(ga_instance, solution, solution_idx):
-        fitness = 0.0
-        fusion = GeoDataFrame()
+        fitness = float('-inf') 
+        fusion:GeoDataFrame = GeoDataFrame()
         for i, rectangulos in enumerate(function_inputs):
-            if len(fusion)<=0:
-                fusion = rectangulos[rectangulos.score >= solution[i]].copy
-            else:
-                # Realiza la intersección utilizando overlay
-                fusion = gpd.overlay(fusion, rectangulos[rectangulos.score >= solution[i]].copy, how='intersection')                        
-
-        mamoas_cubiertas = gpd.sjoin(true_input, fusion, how="inner", predicate='intersects')
+            if solution[i]<=solution[i+len(function_inputs)]:
+                datos = rectangulos[(rectangulos['score'] >= solution[i]) & (rectangulos['score'] <= solution[i+len(function_inputs)])].copy()
+                if len(datos)>0:
+                    fusion = pd.concat([fusion, datos], ignore_index=True)
+        
         tam = len(fusion)  
-        
-        # Suma los scores de los rectángulos superpuestos que supera en threshold 
-        positivos = 0
-        if not mamoas_cubiertas.empty:
-            positivos = len(mamoas_cubiertas)
-            fitness += positivos
-        
-        if not fusion.empty:
-            fitness -= (tam-positivos)
+    
+        if tam>0:
+            mamoas_cubiertas = gpd.sjoin(true_input, fusion, how="left", predicate='intersects')
+            mamoas_no_cubiertas = mamoas_cubiertas[mamoas_cubiertas['index_right'].isnull()]
+            
+            # Cuenta las mamoas no cubiertas 
+            negativos = 0
+            if not mamoas_no_cubiertas.empty:
+                negativos = len(mamoas_no_cubiertas)
+                fitness = -negativos
+            
+                # Cuenta el número total de cajas generadas que no solaparon positivos o fueron redundantes
+                positivos = len(true_input)- negativos
+                fitness -= (tam-positivos)
             
         return fitness
     
+    #Fitness que maximiza el número de cajas solapadas (misma resolución) sobre las mamoas reales y penaliza el exceso de cajas en el shape.
     def fitness_func_3(ga_instance, solution, solution_idx):
         fitness = 0.0
         fusion:GeoDataFrame = GeoDataFrame()
@@ -72,7 +105,7 @@ def fitness_function_factory(function_inputs:list[GeoDataFrame], true_input, des
             
         return fitness
 
-
+    #Fitness que maximiza la suma de los scores de cajas solapadas (misma resolución) sobre las mamoas reales y penaliza con el score del exceso de cajas en el shape.
     def fitness_func_2(ga_instance, solution, solution_idx):
         fitness = 0.0
         fusion:GeoDataFrame = GeoDataFrame()
@@ -115,7 +148,7 @@ def evolve(inputs, true_input, aim):
     num_parents_mating = NUM_PARENT_MATING
 
     sol_per_pop = NUM_INDIVIDUALS
-    num_genes = len(inputs)
+    num_genes = 2*len(inputs)
 
     init_range_low = 0
     init_range_high = 1

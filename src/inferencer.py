@@ -12,7 +12,7 @@ from PIL import Image
 
 from mmdetection.configs.mamoas.mamoas_detection import LEVEL, OVERLAP, SHAPES_OUTPUT, SIZE, TEMPORAL
 
-def infere(model_name, model_path, model_config_path, test_image, threshold, check_point_file:str='last_checkpoint')->None:
+def infere(model_name, model_path, model_config_path, test_image, threshold_min, threshold_max, check_point_file:str='last_checkpoint')->None:
 
     # Specify the path to model config and checkpoint file
     config_file = model_config_path + model_name + '.py'
@@ -70,7 +70,7 @@ def infere(model_name, model_path, model_config_path, test_image, threshold, che
                 shapes = [(transform.xy(src.transform, bbox[1], bbox[0]) 
                             + transform.xy(src.transform, bbox[3], bbox[2]),
                             score) for score, bbox in zip(scores, bboxes)]
-                shapes = [(box(bbox[0], bbox[1], bbox[2], bbox[3]), score) for bbox, score in shapes if score >= threshold]
+                shapes = [(box(bbox[0], bbox[1], bbox[2], bbox[3]), score) for bbox, score in shapes if threshold_max >= score >= threshold_min]
                 
                 if len(shapes)>0:
                     result_shapes += shapes

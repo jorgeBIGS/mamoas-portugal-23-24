@@ -1,4 +1,4 @@
-LEVEL = 'L1'
+LEVEL = 'L2'
 
 #parámetros de preprocessing
 SIZE_L1 = 200
@@ -37,7 +37,7 @@ DST_DATA_IMAGES_L3 = OUTPUT_DATA_ROOT_L3 + "images/"
 RES_MIN = 5
 PERCENTILE = 0.5
 ORIGINALES = 'data/original'
-TRUE_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
+TRUE_IMAGE=ORIGINALES + '/COMB-Laboreiro_2.tif'
 TRUE_SHAPE=ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
 
 LEAVE_ONE_OUT_BOOL = False
@@ -72,14 +72,14 @@ else:
 NUM_GENERATIONS=50
 NUM_INDIVIDUALS=100
 NUM_PARENT_MATING = 2
-ELITISM = 1
-MUTATION_PERCENT = 20
-NUM_THREADS = 1
+ELITISM = 2
+MUTATION_PERCENT = 80
+NUM_THREADS = 20
 
 TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
 
 #parámetros de inference
-TEST_IMAGE = 'data/original/COMB-Arcos.tif'
+TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
 TEMPORAL = 'data/tmp'
 SHAPES_OUTPUT = 'data/shapes'
 
