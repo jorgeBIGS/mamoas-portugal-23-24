@@ -1,4 +1,4 @@
-LEVEL = 'L2'
+LEVEL = 'L1'
 
 #parámetros de preprocessing
 SIZE_L1 = 200
