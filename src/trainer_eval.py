@@ -2,7 +2,7 @@ import subprocess
 
 from glob import glob
 
-from mmdetection.configs.mamoas.mamoas_detection import MODEL, MODEL_CONFIG, MODEL_PATH, TRAINING_DATA_ROOT, VAL_DATA_ROOT
+from mmdetection.configs.mamoas_detection import MODEL, MODEL_CONFIG, MODEL_PATH, TRAINING_DATA_ROOT, VAL_DATA_ROOT
 
 model=MODEL
 # Config file
