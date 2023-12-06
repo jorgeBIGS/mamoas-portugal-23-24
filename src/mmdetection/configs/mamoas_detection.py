@@ -51,20 +51,20 @@ MODEL_CONFIG_ROOT = "src/mmdetection/configs/mamoas/"
 
 if LEVEL == 'L1':
     MODEL_PATH = MODEL_PATH_L1
-    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L1
-    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L1
+    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L1 + 'training/'
+    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L1 + 'validation/'
     SIZE = SIZE_L1
     OVERLAP = OVERLAP_L1
 elif LEVEL == 'L2':
     MODEL_PATH = MODEL_PATH_L2
-    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L2
-    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L2
+    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L2 + 'training/'
+    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L2 + 'validation/'
     SIZE = SIZE_L2
     OVERLAP = OVERLAP_L2
 else:
     MODEL_PATH = MODEL_PATH_L3
-    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L3
-    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L3
+    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L3 + 'training/'
+    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L3 + 'validation/'
     SIZE = SIZE_L3
     OVERLAP = OVERLAP_L3
 
@@ -74,9 +74,10 @@ NUM_INDIVIDUALS=100
 NUM_PARENT_MATING = 2
 ELITISM = 2
 MUTATION_PERCENT = 80
-NUM_THREADS = 20
+NUM_THREADS = 10
 
 TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
+SHP_DIRECTORY = 'data/shapes/' + LEVEL
 
 #parámetros de inference
 TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
@@ -162,19 +163,47 @@ val_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type=dataset_type,
-        data_root=TRAINING_DATA_ROOT,
+        data_root=VAL_DATA_ROOT,
         metainfo=metainfo,
         ann_file='annotations/all.json',
         data_prefix=dict(img='images/'),
         test_mode=True,
         pipeline=test_pipeline,
         backend_args=backend_args))
+
 test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='CocoMetric',
-    ann_file=TRAINING_DATA_ROOT + '/annotations/all.json',
+    ann_file=VAL_DATA_ROOT + 'annotations/all.json',
     metric='bbox',
     format_only=False,
     backend_args=backend_args)
+
 test_evaluator = val_evaluator
+
+
+model = dict(
+    bbox_head=dict(num_classes=1),
+    train_cfg = dict(max_epochs=24, val_interval=1),
+    test_cfg=dict(
+        rcnn=dict(
+            score_thr=0.05, # Default:0.05
+            nms=dict(type='nms', iou_threshold=0.95),
+            max_per_img=100))
+)
+
+# optimizer
+optim_wrapper = dict(
+    type='OptimWrapper',
+    optimizer=dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0005),
+    clip_grad=dict(max_norm=35, norm_type=2))
+
+# learning policy
+param_scheduler = [
+    dict(type='LinearLR', start_factor=0.001, by_epoch=False, begin=0, end=500),
+    dict(type='MultiStepLR', begin=0, end=24, by_epoch=True, milestones=[16, 22], gamma=0.1)
+]
+
+
+default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))
