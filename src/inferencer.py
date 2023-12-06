@@ -9,10 +9,11 @@ from shapely.geometry import box
 import numpy as np
 import auxiliar.images as images
 from PIL import Image
+from mmcv.ops import nms
 
-from mmdetection.configs.mamoas.mamoas_detection import LEVEL, OVERLAP, SHAPES_OUTPUT, SIZE, TEMPORAL
+from mmdetection.configs.mamoas_detection import LEVEL, OVERLAP, SHAPES_OUTPUT, SIZE, TEMPORAL
 
-def infere(model_name, model_path, model_config_path, test_image, threshold_min, threshold_max, check_point_file:str='last_checkpoint')->None:
+def infere(model_name, model_path, model_config_path, test_image, threshold_min, threshold_max, check_point_file:str='last_checkpoint', iou_threshold_min:float=0.9)->None:
 
     # Specify the path to model config and checkpoint file
     config_file = model_config_path + model_name + '.py'
@@ -23,7 +24,6 @@ def infere(model_name, model_path, model_config_path, test_image, threshold_min,
     # Ruta al archivo TIFF georeferenciado de entrada
     input_tiff = test_image
 
-    
 
     # Guarda el archivo shapefile
     SHAPE_NAME = test_image.split('/')[-1].replace('.tif','') + str(LEVEL) + '-' + model_name + '.shp'
@@ -32,7 +32,7 @@ def infere(model_name, model_path, model_config_path, test_image, threshold_min,
 
     # Build the model from a config file and a checkpoint file
     model = init_detector(config_file, checkpoint=check_point, device='cuda:0')
-
+    
     # Abre la imagen TIFF y genera tiles y copias sin georreferenciar.
     with rasterio.open(input_tiff) as original:
         paths = os.listdir(TEMPORAL)
@@ -63,9 +63,13 @@ def infere(model_name, model_path, model_config_path, test_image, threshold_min,
                 # Test a single tile and show the results
                 result = inference_detector(model, np.array(image)).to_dict()
 
-                scores = result['pred_instances']['scores'].tolist()
-                bboxes = result['pred_instances']['bboxes'].tolist()
+                scores = result['pred_instances']['scores']
+                bboxes = result['pred_instances']['bboxes']
 
+                dets, inds = nms(bboxes, scores, iou_threshold_min, score_threshold= threshold_min)
+
+                scores = dets[:, -1].tolist()
+                bboxes = dets[:, 0:-1].tolist()
 
                 shapes = [(transform.xy(src.transform, bbox[1], bbox[0]) 
                             + transform.xy(src.transform, bbox[3], bbox[2]),
