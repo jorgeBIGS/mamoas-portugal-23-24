@@ -5,7 +5,7 @@ import os
 from pyproj import CRS
 from auxiliar.images import *
 import geopandas as gpd
-from mmdetection.configs.mamoas.mamoas_detection import *
+from mmdetection.configs.mamoas_detection import *
 import gc
 from shapely.geometry import Polygon
 

@@ -37,7 +37,7 @@ DST_DATA_IMAGES_L3 = OUTPUT_DATA_ROOT_L3 + "images/"
 RES_MIN = 5
 PERCENTILE = 0.5
 ORIGINALES = 'data/original'
-TRUE_IMAGE=ORIGINALES + '/COMB-Laboreiro_2.tif'
+TRUE_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
 TRUE_SHAPE=ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
 
 LEAVE_ONE_OUT_BOOL = False
@@ -47,7 +47,7 @@ COMPLETE_BBOX_OVERLAP=False
 LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
 
 #parámetros de training
-MODEL_CONFIG_ROOT = "src/mmdetection/configs/mamoas/"
+MODEL_CONFIG_ROOT = "src/mmdetection/configs/models/"
 
 if LEVEL == 'L1':
     MODEL_PATH = MODEL_PATH_L1
@@ -74,13 +74,13 @@ NUM_INDIVIDUALS=100
 NUM_PARENT_MATING = 2
 ELITISM = 2
 MUTATION_PERCENT = 80
-NUM_THREADS = 10
+NUM_THREADS = 15
 
 TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
 SHP_DIRECTORY = 'data/shapes/' + LEVEL
 
 #parámetros de inference
-TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
+TEST_IMAGE = 'data/original/COMB-Arcos.tif'
 TEMPORAL = 'data/tmp'
 SHAPES_OUTPUT = 'data/shapes'
 
@@ -183,7 +183,7 @@ val_evaluator = dict(
 test_evaluator = val_evaluator
 
 
-model = dict(
+'''model = dict(
     bbox_head=dict(num_classes=1),
     train_cfg = dict(max_epochs=24, val_interval=1),
     test_cfg=dict(
@@ -192,6 +192,9 @@ model = dict(
             nms=dict(type='nms', iou_threshold=0.95),
             max_per_img=100))
 )
+
+default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))'''
+
 
 # optimizer
 optim_wrapper = dict(
@@ -206,4 +209,3 @@ param_scheduler = [
 ]
 
 
-default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))

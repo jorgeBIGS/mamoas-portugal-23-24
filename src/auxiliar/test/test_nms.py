@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from mmcv.ops import nms
+import geopandas as gpd
 
 # Supongamos que 'bboxes' es un tensor de dimensiones (N, 5), donde N es el número de detecciones.
 # La primera columna representa la coordenada x del cuadro delimitador,
@@ -25,3 +26,28 @@ dets, inds = nms(boxes, scores, iou_threshold)
 print('Scores', dets[:, -1])
 print('Boxes', dets[:, 0:-1])
 print(inds)
+
+
+
+
+# Supongamos que 'gdf' es tu GeoDataFrame con una geometría y una columna 'score'.
+# 'gdf' tiene una estructura similar a la siguiente:
+# gdf = gpd.GeoDataFrame(geometry=[shapely.geometry.Polygon()], score=[0.9])
+gdf = gpd.read_file('data/shapes/COMB-LaboreiroL2-faster_rcnn.shp')
+
+print(len(gdf))
+
+# Convertir la geometría a cajas delimitadoras
+bboxes = gdf.geometry.bounds
+
+# Obtener las puntuaciones desde la columna 'score'
+scores = gdf['score'].values
+
+# Aplicar NMS manualmente
+nms_result, nms_indices = nms(torch.tensor(bboxes.values).float(), torch.tensor(scores).float(), iou_threshold=0.5)
+
+# Crear un nuevo GeoDataFrame con los resultados después de NMS
+nms_gdf = gdf.iloc[nms_indices].copy()
+
+# Imprimir el GeoDataFrame después de NMS
+print(len(nms_gdf))
