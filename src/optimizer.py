@@ -44,21 +44,16 @@ def fitness_function_factory(function_inputs:list[GeoDataFrame], true_input, des
                 # Crear un nuevo GeoDataFrame con los resultados después de NMS
                 datos = datos.iloc[nms_indices].copy()
 
-                if len(interseccion)==0:
-                    interseccion = datos
-                else:
+                if len(datos)>0:
+                    tam = len(datos)  
                     
-
-        if len(datos)>0:
-            tam = len(datos)  
-            
-            mamoas_cubiertas = gpd.sjoin(true_input, datos, how="left", predicate='intersects')
-            mamoas_no_cubiertas = mamoas_cubiertas[mamoas_cubiertas['index_right'].isnull()]
-            
-            negativos = len(mamoas_no_cubiertas)
-            positivos = NUM_TRUE - negativos
-            
-            fitness += (2*positivos - negativos - tam)/NUM_TRUE
+                    mamoas_cubiertas = gpd.sjoin(true_input, datos, how="left", predicate='intersects')
+                    mamoas_no_cubiertas = mamoas_cubiertas[mamoas_cubiertas['index_right'].isnull()]
+                    
+                    negativos = len(mamoas_no_cubiertas)
+                    positivos = NUM_TRUE - negativos
+                    
+                    fitness += (2*positivos - negativos - tam)/NUM_TRUE
 
         return fitness
 
