@@ -3,10 +3,12 @@ import pygad
 from geopandas import GeoDataFrame
 import geopandas as gpd
 import pandas as pd
+import torch
+from mmcv.ops import nms
 
-from mmdetection.configs.mamoas.mamoas_detection import *
+from mmdetection.configs.mamoas_detection import *
 
-SHP_DIRECTORY = 'data/shapes'
+SHP_DIRECTORY = 'data/shapes/retinanet'
 
 def leer_shapefiles_en_directorio(directorio):
     archivos_shp = [archivo for archivo in os.listdir(directorio) if archivo.endswith('.shp')]
@@ -18,39 +20,49 @@ def leer_shapefiles_en_directorio(directorio):
         gdf = gpd.read_file(ruta_completa)
         dataframes.append(gdf)
 
-    return dataframes
+    return list(zip(sorted(archivos_shp), dataframes))
 
 def fitness_function_factory(function_inputs:list[GeoDataFrame], true_input, desired_output):
-
+    NUM_TRUE = len(true_input)
 
     def fitness_func_5(ga_instance, solution, solution_idx):
-        fitness = float('-inf') 
-        fusion:GeoDataFrame = GeoDataFrame()
+        fitness = 0.0
+        interseccion = GeoDataFrame()
         for i, rectangulos in enumerate(function_inputs):
             if solution[i]<=solution[i+len(function_inputs)]:
                 datos = rectangulos[(rectangulos['score'] >= solution[i]) & (rectangulos['score'] <= solution[i+len(function_inputs)])].copy()
-                if len(datos)>0:
-                    if len(fusion)==0:
-                        fusion = datos.copy()
-                    else:
-                        fusion = gpd.overlay(fusion, datos, how='intersection', keep_geom_type=True)
-        tam = len(fusion)  
-    
-        if tam>0:
-            mamoas_cubiertas = gpd.sjoin(true_input, fusion, how="left", predicate='intersects')
+                #Falta aplicar nms con el parámetro optimizado
+                # Convertir la geometría a cajas delimitadoras
+                bboxes = datos.geometry.bounds
+
+                # Obtener las puntuaciones desde la columna 'score'
+                scores = datos['score'].values
+
+                # Aplicar NMS manualmente
+                _, nms_indices = nms(torch.tensor(bboxes.values).float(), torch.tensor(scores).float(), iou_threshold=solution[i+2*len(function_inputs)])
+
+                # Crear un nuevo GeoDataFrame con los resultados después de NMS
+                datos = datos.iloc[nms_indices].copy()
+
+                if len(interseccion)==0:
+                    interseccion = datos
+                else:
+                    
+
+        if len(datos)>0:
+            tam = len(datos)  
+            
+            mamoas_cubiertas = gpd.sjoin(true_input, datos, how="left", predicate='intersects')
             mamoas_no_cubiertas = mamoas_cubiertas[mamoas_cubiertas['index_right'].isnull()]
             
-            # Cuenta las mamoas no cubiertas 
-            negativos = 0
-            if not mamoas_no_cubiertas.empty:
-                negativos = len(mamoas_no_cubiertas)
-                fitness = -negativos
+            negativos = len(mamoas_no_cubiertas)
+            positivos = NUM_TRUE - negativos
             
-                # Cuenta el número total de cajas generadas que no solaparon positivos o fueron redundantes
-                positivos = len(true_input)- negativos
-                fitness -= (tam-positivos)
-            
+            fitness += (2*positivos - negativos - tam)/NUM_TRUE
+
         return fitness
+
+
 
     #Probar máximo y mínimo en lugar de mínimo solamente, pero con mínimo solapamiento...
     def fitness_func_4(ga_instance, solution, solution_idx):
@@ -134,7 +146,7 @@ def fitness_function_factory(function_inputs:list[GeoDataFrame], true_input, des
     
 
 
-    return fitness_func_4
+    return fitness_func_5
 
 
 def callback_gen(ga_instance):
@@ -148,7 +160,7 @@ def evolve(inputs, true_input, aim):
     num_parents_mating = NUM_PARENT_MATING
 
     sol_per_pop = NUM_INDIVIDUALS
-    num_genes = 2*len(inputs)
+    num_genes = 3*len(inputs)
 
     init_range_low = 0
     init_range_high = 1
@@ -177,7 +189,7 @@ def evolve(inputs, true_input, aim):
                         parallel_processing=NUM_THREADS)
 
     ga_instance.run()
-    ga_instance.plot_fitness()
+    #ga_instance.plot_fitness()
     
     return ga_instance.best_solution()
 
@@ -185,15 +197,20 @@ def evolve(inputs, true_input, aim):
 def optimize():
     true_positives = gpd.read_file(TRUE_DATA)
     
-    dataframes = leer_shapefiles_en_directorio(SHP_DIRECTORY)
+    shape_y_geo = leer_shapefiles_en_directorio(SHP_DIRECTORY)
 
-    desired_output = len(true_positives) + len(dataframes)
+    desired_output = 1.0
     
     
-    return evolve(dataframes, true_positives, desired_output)
+    resultados = [(name, evolve([dataframe], true_positives, desired_output)) for name, dataframe in shape_y_geo]
+
+    return resultados
 
 
 if __name__ == '__main__':
-    solution, solution_fitness, _ = optimize() 
-    print("Parameters of the best solution : {solution}".format(solution=solution))
-    print("Fitness value of the best solution = {solution_fitness}".format(solution_fitness=solution_fitness))
+    lista_soluciones = optimize()
+    for name, solucion in lista_soluciones:
+        print(name)
+        solution, solution_fitness, _ = solucion
+        print("Parameters of the best solution : {solution}".format(solution=solution))
+        print("Fitness value of the best solution = {solution_fitness}".format(solution_fitness=solution_fitness))
