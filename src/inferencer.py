@@ -13,7 +13,7 @@ from mmcv.ops import nms
 
 from mmdetection.configs.mamoas_detection import LEVEL, OVERLAP, SHAPES_OUTPUT, SIZE, TEMPORAL
 
-def infere(model_name, model_path, model_config_path, test_image, threshold_min, threshold_max, check_point_file:str='last_checkpoint', iou_threshold_min:float=0.9)->None:
+def infere(model_name, model_path, model_config_path, test_image, threshold_min=0.5, threshold_max=1.0, check_point_file:str='last_checkpoint', iou_threshold_min:float=0.5)->None:
 
     # Specify the path to model config and checkpoint file
     config_file = model_config_path + model_name + '.py'
@@ -66,7 +66,7 @@ def infere(model_name, model_path, model_config_path, test_image, threshold_min,
                 scores = result['pred_instances']['scores']
                 bboxes = result['pred_instances']['bboxes']
 
-                dets, inds = nms(bboxes, scores, iou_threshold_min, score_threshold= threshold_min)
+                dets, _ = nms(bboxes, scores, iou_threshold_min, score_threshold= threshold_min)
 
                 scores = dets[:, -1].tolist()
                 bboxes = dets[:, 0:-1].tolist()

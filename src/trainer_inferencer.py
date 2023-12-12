@@ -4,7 +4,7 @@ from inferencer import infere
 from mmdetection.configs.mamoas_detection import *
 from trainer import train
 
-ONLY_INFERENCE = True
+
 
 shutil.rmtree(TEMPORAL, ignore_errors=True)
 
@@ -47,11 +47,11 @@ for i, model in enumerate(models):
     if thresholds_min[i] <= thresholds_max[i] and thresholds_min[i] <= 1:
         try:
             # Train model
-            if not ONLY_INFERENCE:
+            if  INCLUDE_TRAIN:
                 train(config_file = MODEL_CONFIG_ROOT + model + '.py', work_dir_fold=MODEL_PATH + model,training_root=TRAINING_DATA_ROOT, validation_root=VAL_DATA_ROOT) 
 
             # Inference 
-            infere(model, MODEL_PATH, MODEL_CONFIG_ROOT, TEST_IMAGE, thresholds_min[i], thresholds_max[i], iou_threshold_min=iou[i])
+            infere(model, MODEL_PATH, MODEL_CONFIG_ROOT, TEST_IMAGE, threshold_min=0, threshold_max=1, iou_threshold_min=0.3)
         except Exception as e:
             print('Error en ', model)
             print(e)

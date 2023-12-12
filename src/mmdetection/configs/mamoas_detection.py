@@ -3,6 +3,7 @@ LEVEL = 'L1'
 #parámetros de preprocessing
 SIZE_L1 = 200
 OVERLAP_L1 = [0, SIZE_L1//2]
+BUFFER_SIZES = [2.5, 5, 10]
 MODEL_PATH_L1 = 'data/model_l1/'
 
 OUTPUT_DATA_ROOT_L1= 'data/mamoas-laboreiro_l1/'
@@ -34,11 +35,11 @@ DST_DATA_ANNOTATION_L3 = OUTPUT_DATA_ROOT_L3 + "annotations/"
 DST_DATA_LOO_CV_L3 = DST_DATA_ANNOTATION_L3 + "loo_cv/"
 DST_DATA_IMAGES_L3 = OUTPUT_DATA_ROOT_L3 + "images/"
 
-RES_MIN = 5
+RES_MIN = BUFFER_SIZES[0]
 PERCENTILE = 0.5
 ORIGINALES = 'data/original'
 TRUE_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
-TRUE_SHAPE=ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
+TRUE_SHAPE=ORIGINALES + '/Mamoas-Laboreiro.shp'
 
 LEAVE_ONE_OUT_BOOL = False
 INCLUDE_ALL_IMAGES = False
@@ -80,7 +81,8 @@ TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
 SHP_DIRECTORY = 'data/shapes/' + LEVEL
 
 #parámetros de inference
-TEST_IMAGE = 'data/original/COMB-Arcos.tif'
+INCLUDE_TRAIN = False
+TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
 TEMPORAL = 'data/tmp'
 SHAPES_OUTPUT = 'data/shapes'
 
@@ -181,20 +183,6 @@ val_evaluator = dict(
     backend_args=backend_args)
 
 test_evaluator = val_evaluator
-
-
-'''model = dict(
-    bbox_head=dict(num_classes=1),
-    train_cfg = dict(max_epochs=24, val_interval=1),
-    test_cfg=dict(
-        rcnn=dict(
-            score_thr=0.05, # Default:0.05
-            nms=dict(type='nms', iou_threshold=0.95),
-            max_per_img=100))
-)
-
-default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))'''
-
 
 # optimizer
 optim_wrapper = dict(
