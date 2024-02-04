@@ -1,9 +1,22 @@
 LEVEL = 'L1'
 
 #parámetros de preprocessing
+BUFFER_SIZES = [2.5, 5, 7.5]
+RES_MIN = BUFFER_SIZES[0]
+PERCENTILE = 0.5
+ORIGINALES = 'data/original'
+TRUE_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
+TRUE_SHAPE=ORIGINALES + '/Mamoas-Laboreiro.shp'
+
+LEAVE_ONE_OUT_BOOL = False
+INCLUDE_ALL_IMAGES = False
+
+COMPLETE_BBOX_OVERLAP=False
+LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
+
+
 SIZE_L1 = 200
 OVERLAP_L1 = [0, SIZE_L1//2]
-BUFFER_SIZES = [2.5, 5, 10]
 MODEL_PATH_L1 = 'data/model_l1/'
 
 OUTPUT_DATA_ROOT_L1= 'data/mamoas-laboreiro_l1/'
@@ -35,37 +48,25 @@ DST_DATA_ANNOTATION_L3 = OUTPUT_DATA_ROOT_L3 + "annotations/"
 DST_DATA_LOO_CV_L3 = DST_DATA_ANNOTATION_L3 + "loo_cv/"
 DST_DATA_IMAGES_L3 = OUTPUT_DATA_ROOT_L3 + "images/"
 
-RES_MIN = BUFFER_SIZES[0]
-PERCENTILE = 0.5
-ORIGINALES = 'data/original'
-TRUE_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
-TRUE_SHAPE=ORIGINALES + '/Mamoas-Laboreiro.shp'
-
-LEAVE_ONE_OUT_BOOL = False
-INCLUDE_ALL_IMAGES = False
-
-COMPLETE_BBOX_OVERLAP=False
-LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
-
 #parámetros de training
 MODEL_CONFIG_ROOT = "src/mmdetection/configs/models/"
 
 if LEVEL == 'L1':
     MODEL_PATH = MODEL_PATH_L1
-    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L1 + 'training/'
-    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L1 + 'validation/'
+    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L1
+    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L1 
     SIZE = SIZE_L1
     OVERLAP = OVERLAP_L1
 elif LEVEL == 'L2':
     MODEL_PATH = MODEL_PATH_L2
-    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L2 + 'training/'
-    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L2 + 'validation/'
+    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L2
+    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L2
     SIZE = SIZE_L2
     OVERLAP = OVERLAP_L2
 else:
     MODEL_PATH = MODEL_PATH_L3
-    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L3 + 'training/'
-    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L3 + 'validation/'
+    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L3 
+    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L3
     SIZE = SIZE_L3
     OVERLAP = OVERLAP_L3
 
@@ -81,7 +82,7 @@ TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
 SHP_DIRECTORY = 'data/shapes/' + LEVEL
 
 #parámetros de inference
-INCLUDE_TRAIN = False
+INCLUDE_TRAIN = True
 TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
 TEMPORAL = 'data/tmp'
 SHAPES_OUTPUT = 'data/shapes'
@@ -102,7 +103,7 @@ img_scales = [(SIZE, SIZE)]
 
 train_pipeline = [
     dict(type='LoadImageFromFile', backend_args=backend_args),
-    dict(type='LoadAnnotations', with_bbox=True),
+    dict(type='LoadAnnotations', with_bbox=True), #, with_masks=True
     # dict(type='RandomChoiceResize', scales=img_scales, keep_ratio=True),
     dict(type='Resize', scale=(SIZE, SIZE), keep_ratio=True),
     dict(type='RandomFlip', prob=0.5),

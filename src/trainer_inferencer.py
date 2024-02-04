@@ -12,20 +12,20 @@ os.makedirs(TEMPORAL, exist_ok=True)
 
 os.makedirs(SHAPES_OUTPUT, exist_ok=True)
 #['cascade_rcnn', 'faster_rcnn', 'retinanet', 'rpn']
-models_l1 = ['retinanet']
-thresholds_min_l1 = [0.90661181]
-thresholds_max_l1 = [2.20171123]
-iou_threshold_l1 = [0.5502254]
+models_l1 = ['cascade_rcnn', 'faster_rcnn', 'retinanet', 'rpn']
+thresholds_min_l1 = [0]*4
+thresholds_max_l1 = [1]*4
+iou_threshold_l1 = [1]*4
 
-models_l2 = ['retinanet']
-thresholds_min_l2 = [0.66433658]
-thresholds_max_l2 = [0.86952232]
-iou_threshold_l2 = [0.15279332]
+models_l2 = ['cascade_rcnn', 'faster_rcnn', 'retinanet', 'rpn']
+thresholds_min_l2 = [0]*4
+thresholds_max_l2 = [1]*4
+iou_threshold_l2 = [1]*4
 
-models_l3 = ['retinanet']
-thresholds_min_l3 = [0.52526017]
-thresholds_max_l3 = [0.57069809]
-iou_threshold_l3 = [0.72528968]
+models_l3 = ['cascade_rcnn', 'faster_rcnn', 'retinanet', 'rpn']
+thresholds_min_l3 = [0]*4
+thresholds_max_l3 = [1]*4
+iou_threshold_l3 = [1]*4
 
 if LEVEL == 'L1':
     models = models_l1
@@ -44,14 +44,13 @@ else:
     iou = iou_threshold_l3
 
 for i, model in enumerate(models):
-    if thresholds_min[i] <= thresholds_max[i] and thresholds_min[i] <= 1:
         try:
-            # Train model
+        # Train model
             if  INCLUDE_TRAIN:
                 train(config_file = MODEL_CONFIG_ROOT + model + '.py', work_dir_fold=MODEL_PATH + model,training_root=TRAINING_DATA_ROOT, validation_root=VAL_DATA_ROOT) 
 
             # Inference 
-            infere(model, MODEL_PATH, MODEL_CONFIG_ROOT, TEST_IMAGE, threshold_min=0, threshold_max=1, iou_threshold_min=0.3)
+            infere(model, MODEL_PATH, MODEL_CONFIG_ROOT, TEST_IMAGE, threshold_min=thresholds_min_l1[i], threshold_max=thresholds_max_l1[i], iou_threshold_min=iou[i])
         except Exception as e:
             print('Error en ', model)
             print(e)
