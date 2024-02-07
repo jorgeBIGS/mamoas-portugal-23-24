@@ -18,11 +18,20 @@ def generate_coco_annotations(image_filenames, destiny_valid_images, train, outp
 
     # Crea la categoría "mamoa" en el archivo de anotaciones
     category = {
+        'id': 0,
+        'name': 'not_mamoa',
+        'supercategory': 'object'
+    }
+    categories.append(category)
+    
+    category = {
         'id': 1,
         'name': 'mamoa',
         'supercategory': 'object'
     }
     categories.append(category)
+
+    
 
 
     images = []
@@ -51,7 +60,7 @@ def generate_coco_annotations(image_filenames, destiny_valid_images, train, outp
         # Genera las anotaciones para cada bounding box
         lista = check_train(bounds, train)
         bboxes_1 = []
-        for bbox in lista:
+        for bbox,categoria in lista:
             left, bottom, right, top = bbox.bounds
             w, h = max(abs(right-left), RES_MIN), max(abs(top-bottom), RES_MIN)
            
@@ -76,7 +85,7 @@ def generate_coco_annotations(image_filenames, destiny_valid_images, train, outp
                 annotation = {
                     'id': id_annot,
                     'image_id': image_id,
-                    'category_id': 1,  # ID de la categoría
+                    'category_id': categoria,  # ID de la categoría
                     'bbox': aux_bbox,
                     'area': w * h,
                     'iscrowd': 0
@@ -125,36 +134,53 @@ def check_area(tile, bbox):
         result = 0
     return result
 
+def refine(training):
+    # Cargar el shapefile que contiene los elementos para la actualización
+    shp_actualizar = gpd.read_file(TRUE_DATA)
+
+     # Realizar la intersección con sufijos en los campos
+    shp_interseccion = gpd.sjoin(training, shp_actualizar, how='left', predicate='intersects')
+
+    # Actualizar el campo deseado solo donde hay solape
+    shp_interseccion['es_mamoa'] = shp_interseccion['es_mamoa'].fillna(0)
+
+    # Descartar las geometrías y campos no necesarios
+    columnas_resultado = ['es_mamoa', 'geometry']
+    shp_resultado = shp_interseccion[columnas_resultado]
+    return shp_resultado
 
 def check_train(tile_bounds, train):
     result = []
 
-    for bbox in train:
-        xmin, ymin, xmax, ymax = bbox.bounds[0], bbox.bounds[1], bbox.bounds[2], bbox.bounds[3]
+    # es_mamoa, geometry
+    for tupla in train.values:
+        es_mamoa, geometry = tupla
+        xmin, ymin, xmax, ymax = geometry.bounds[0], geometry.bounds[1], geometry.bounds[2], geometry.bounds[3]
         #TODO: Problem with the overlap between tile and bbox. By now, we focus on a minimum overlap area (LENIENT) or a complete overlap (STRICT).
         if COMPLETE_BBOX_OVERLAP:
             #STRICT 
             if check_limit(tile_bounds, xmin, ymin) and check_limit(tile_bounds, xmin, ymax) and check_limit(tile_bounds, xmax, ymin) and check_limit(tile_bounds, xmax, ymax):
-                result.append(bbox)
+                result.append((geometry, es_mamoa))
         else:
             #LENIENT
-            if check_area(tile_bounds, bbox.bounds)>=LENIENT_BBOX_OVERLAP_PERCENTAGE:
-                result.append(bbox)
+            if check_area(tile_bounds, geometry.bounds)>=LENIENT_BBOX_OVERLAP_PERCENTAGE:
+                result.append((geometry, es_mamoa))
 
     return result
 
 def get_training(shapefile:str)->list:
-    result = []
+    #result = []
     gdf = gpd.read_file(shapefile)
-    
-    for x in gdf.values:
-        result.append(x[3])
-    return result
+    return gdf
+
+    #for x in gdf.values:
+    #   result.append(x)
+    #return result
 
 
 def mamoas_tiles(tif_name:str, shapefile:str, include_all:str = INCLUDE_ALL_IMAGES, destiny_images:str= DST_IMAGE_DIR_L1, destiny_valid_images:str = DST_VALID_TILES_L1, coco_data:str = DST_DATA_IMAGES_L1, coco_data_annotation:str = DST_DATA_ANNOTATION_L1, leave_one_out:str = LEAVE_ONE_OUT_BOOL, loo_data:str = DST_DATA_LOO_CV_L1, size:int=50, overlap:List[int] = [0]):
 
-    training = get_training(shapefile)
+    training = refine(get_training(shapefile))
 
     img = rasterio.open(tif_name)
 
@@ -240,7 +266,7 @@ if __name__ == '__main__':
     os.makedirs(DST_IMAGE_DIR_L1, exist_ok=True)
     os.makedirs(DST_VALID_TILES_L1, exist_ok=True)
 
-    shutil.rmtree(DST_IMAGE_DIR_L2, ignore_errors=True)
+    '''shutil.rmtree(DST_IMAGE_DIR_L2, ignore_errors=True)
     shutil.rmtree(OUTPUT_DATA_ROOT_L2, ignore_errors=True)
     shutil.rmtree(DST_VALID_TILES_L2, ignore_errors=True)
 
@@ -260,10 +286,8 @@ if __name__ == '__main__':
     os.makedirs(DST_DATA_ANNOTATION_L3, exist_ok=True)
     os.makedirs(DST_DATA_LOO_CV_L3, exist_ok=True)
     os.makedirs(DST_IMAGE_DIR_L3, exist_ok=True)
-    os.makedirs(DST_VALID_TILES_L3, exist_ok=True)
+    os.makedirs(DST_VALID_TILES_L3, exist_ok=True)'''
 
-
-    
     valid_images = mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE, size=SIZE_L1, overlap = OVERLAP_L1)
 
     if len(valid_images)>0:
@@ -273,7 +297,7 @@ if __name__ == '__main__':
 
     shutil.rmtree(DST_IMAGE_DIR_L1, ignore_errors=True)
 
-    valid_images = mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE.replace(".shp", "_l1.shp"), 
+    ''' valid_images = mamoas_tiles(TRUE_IMAGE, TRUE_SHAPE.replace(".shp", "_l1.shp"), 
                  size = SIZE_L2,
                  overlap = OVERLAP_L2,  
                  destiny_images= DST_IMAGE_DIR_L2, 
@@ -297,10 +321,10 @@ if __name__ == '__main__':
                  coco_data = DST_DATA_IMAGES_L3, 
                  coco_data_annotation = DST_DATA_ANNOTATION_L3, 
                  loo_data = DST_DATA_LOO_CV_L3
-                 )
+                 ) 
     
     #if len(valid_images)>0:
     #    save_shape([get_image_dimensions(image, DST_VALID_TILES_L3)[2] for image in valid_images], 
     #               get_image_dimensions(valid_images[0], DST_VALID_TILES_L3)[3], TRUE_SHAPE.replace(".shp", "_l3.shp"))
     
-    shutil.rmtree(DST_IMAGE_DIR_L3, ignore_errors=True)
+    shutil.rmtree(DST_IMAGE_DIR_L3, ignore_errors=True) ''' 

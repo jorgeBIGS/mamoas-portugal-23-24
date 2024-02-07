@@ -8,7 +8,7 @@ print(parent_dir)
 sys.path.append(parent_dir)
 
 # Import the module from the parent directory
-from preprocessing import generate_coco_annotations, get_training
+from data_generator import generate_coco_annotations, get_training
 from mmdetection.configs.mamoas_detection import TRAINING_SHAPE
 
 training = get_training(TRAINING_SHAPE)

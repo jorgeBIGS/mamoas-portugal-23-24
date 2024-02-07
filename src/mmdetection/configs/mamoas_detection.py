@@ -1,4 +1,4 @@
-LEVEL = 'L1'
+LEVEL = 'L2'
 
 #parámetros de preprocessing
 BUFFER_SIZES = [2.5, 5, 7.5]
@@ -6,7 +6,8 @@ RES_MIN = BUFFER_SIZES[0]
 PERCENTILE = 0.5
 ORIGINALES = 'data/original'
 TRUE_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
-TRUE_SHAPE=ORIGINALES + '/Mamoas-Laboreiro.shp'
+TRUE_SHAPE= 'data/training/COMB-LaboreiroL1-faster_rcnn.shp'#ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
+TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
 
 LEAVE_ONE_OUT_BOOL = False
 INCLUDE_ALL_IMAGES = False
@@ -26,8 +27,8 @@ DST_DATA_ANNOTATION_L1 = OUTPUT_DATA_ROOT_L1 + "annotations/"
 DST_DATA_LOO_CV_L1 = DST_DATA_ANNOTATION_L1 + "loo_cv/"
 DST_DATA_IMAGES_L1 = OUTPUT_DATA_ROOT_L1 + "images/"
 
-SIZE_L2 = 500
-OVERLAP_L2 = [0, SIZE_L2//2]
+SIZE_L2 = SIZE_L1
+OVERLAP_L2 = OVERLAP_L1
 MODEL_PATH_L2 = 'data/model_l2/'
 
 OUTPUT_DATA_ROOT_L2 = 'data/mamoas-laboreiro_l2/'
@@ -37,16 +38,6 @@ DST_DATA_ANNOTATION_L2 = OUTPUT_DATA_ROOT_L2 + "annotations/"
 DST_DATA_LOO_CV_L2 = DST_DATA_ANNOTATION_L2 + "loo_cv/"
 DST_DATA_IMAGES_L2 = OUTPUT_DATA_ROOT_L2 + "images/"
 
-SIZE_L3 = 1000
-OVERLAP_L3 = [0, SIZE_L3//2]
-MODEL_PATH_L3 = 'data/model_l3/'
-
-OUTPUT_DATA_ROOT_L3 = 'data/mamoas-laboreiro_l3/'
-DST_IMAGE_DIR_L3 = OUTPUT_DATA_ROOT_L3 + "tiles/"
-DST_VALID_TILES_L3 = OUTPUT_DATA_ROOT_L3 + "valid_tiles/"
-DST_DATA_ANNOTATION_L3 = OUTPUT_DATA_ROOT_L3 + "annotations/"
-DST_DATA_LOO_CV_L3 = DST_DATA_ANNOTATION_L3 + "loo_cv/"
-DST_DATA_IMAGES_L3 = OUTPUT_DATA_ROOT_L3 + "images/"
 
 #parámetros de training
 MODEL_CONFIG_ROOT = "src/mmdetection/configs/models/"
@@ -57,18 +48,13 @@ if LEVEL == 'L1':
     VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L1 
     SIZE = SIZE_L1
     OVERLAP = OVERLAP_L1
-elif LEVEL == 'L2':
+else:
     MODEL_PATH = MODEL_PATH_L2
     TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L2
     VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L2
     SIZE = SIZE_L2
     OVERLAP = OVERLAP_L2
-else:
-    MODEL_PATH = MODEL_PATH_L3
-    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L3 
-    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L3
-    SIZE = SIZE_L3
-    OVERLAP = OVERLAP_L3
+
 
 #parámetros de optimización
 NUM_GENERATIONS=50
@@ -78,8 +64,8 @@ ELITISM = 2
 MUTATION_PERCENT = 80
 NUM_THREADS = 15
 
-TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
-SHP_DIRECTORY = 'data/shapes/' + LEVEL
+
+SHP_DIRECTORY = 'data/shapes'
 
 #parámetros de inference
 INCLUDE_TRAIN = True
@@ -90,9 +76,9 @@ SHAPES_OUTPUT = 'data/shapes'
 
 dataset_type = 'CocoDataset'
 metainfo = {
-    'classes': ('mamoa', ),
+    'classes': ('mamoa', 'not_mamoa'),
     'palette': [
-        (220, 20, 60),
+        (220, 20, 60), (119, 11, 32)
     ]
 }
 

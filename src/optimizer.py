@@ -8,8 +8,6 @@ from mmcv.ops import nms
 
 from mmdetection.configs.mamoas_detection import *
 
-SHP_DIRECTORY = 'data/shapes/retinanet'
-
 def leer_shapefiles_en_directorio(directorio):
     archivos_shp = [archivo for archivo in os.listdir(directorio) if archivo.endswith('.shp')]
 
@@ -27,7 +25,6 @@ def fitness_function_factory(function_inputs:list[GeoDataFrame], true_input, des
 
     def fitness_func_5(ga_instance, solution, solution_idx):
         fitness = 0.0
-        interseccion = GeoDataFrame()
         for i, rectangulos in enumerate(function_inputs):
             if solution[i]<=solution[i+len(function_inputs)]:
                 datos = rectangulos[(rectangulos['score'] >= solution[i]) & (rectangulos['score'] <= solution[i+len(function_inputs)])].copy()
