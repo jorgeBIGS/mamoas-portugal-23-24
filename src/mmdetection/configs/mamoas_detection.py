@@ -1,13 +1,12 @@
-LEVEL = 'L2'
+LEVEL = 'L1'
 
 #parámetros de preprocessing
 BUFFER_SIZES = [2.5, 5, 7.5]
 RES_MIN = BUFFER_SIZES[0]
 PERCENTILE = 0.5
 ORIGINALES = 'data/original'
-TRUE_IMAGE=ORIGINALES + '/COMB-Laboreiro.tif'
-TRUE_SHAPE= 'data/training/COMB-LaboreiroL1-faster_rcnn.shp'#ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
-TRUE_DATA = 'data/original/Mamoas-Laboreiro.shp'
+TRUE_DATA = ORIGINALES + '/Mamoas-Laboreiro.shp'
+TRUE_IMAGE = ORIGINALES + '/COMB-Laboreiro.tif'
 
 LEAVE_ONE_OUT_BOOL = False
 INCLUDE_ALL_IMAGES = False
@@ -26,6 +25,7 @@ DST_VALID_TILES_L1 = OUTPUT_DATA_ROOT_L1 + "valid_tiles/"
 DST_DATA_ANNOTATION_L1 = OUTPUT_DATA_ROOT_L1 + "annotations/"
 DST_DATA_LOO_CV_L1 = DST_DATA_ANNOTATION_L1 + "loo_cv/"
 DST_DATA_IMAGES_L1 = OUTPUT_DATA_ROOT_L1 + "images/"
+TRUE_SHAPE_L1= ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
 
 SIZE_L2 = SIZE_L1
 OVERLAP_L2 = OVERLAP_L1
@@ -37,7 +37,7 @@ DST_VALID_TILES_L2 = OUTPUT_DATA_ROOT_L2 + "valid_tiles/"
 DST_DATA_ANNOTATION_L2 = OUTPUT_DATA_ROOT_L2 + "annotations/"
 DST_DATA_LOO_CV_L2 = DST_DATA_ANNOTATION_L2 + "loo_cv/"
 DST_DATA_IMAGES_L2 = OUTPUT_DATA_ROOT_L2 + "images/"
-
+TRUE_SHAPE_L2 = 'data/training/COMB-LaboreiroL1-faster_rcnn.shp'
 
 #parámetros de training
 MODEL_CONFIG_ROOT = "src/mmdetection/configs/models/"
@@ -48,12 +48,14 @@ if LEVEL == 'L1':
     VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L1 
     SIZE = SIZE_L1
     OVERLAP = OVERLAP_L1
+    TRUE_SHAPE = TRUE_SHAPE_L1
 else:
     MODEL_PATH = MODEL_PATH_L2
     TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L2
     VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L2
     SIZE = SIZE_L2
     OVERLAP = OVERLAP_L2
+    TRUE_SHAPE = TRUE_SHAPE_L2
 
 
 #parámetros de optimización
