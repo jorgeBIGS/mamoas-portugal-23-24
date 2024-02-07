@@ -56,24 +56,24 @@ def infere(model_name, model_path, model_config_path, test_image, threshold_min=
                 
                 #data = src.read()
                 #profile = src.profile
-                
-
+            
                 image = Image.open(image_path_no_geo)
 
                 # Test a single tile and show the results
                 result = inference_detector(model, np.array(image)).to_dict()
-
                 scores = result['pred_instances']['scores']
                 bboxes = result['pred_instances']['bboxes']
+                labels = result['pred_instances']['labels']
 
-                dets, _ = nms(bboxes, scores, iou_threshold_min, score_threshold= threshold_min)
+                dets, indices = nms(bboxes, scores, iou_threshold_min, score_threshold= threshold_min)
 
                 scores = dets[:, -1].tolist()
                 bboxes = dets[:, 0:-1].tolist()
+                labels = labels[indices].tolist()
 
                 shapes = [(transform.xy(src.transform, bbox[1], bbox[0]) 
                             + transform.xy(src.transform, bbox[3], bbox[2]),
-                            score) for score, bbox in zip(scores, bboxes)]
+                            score) for score, bbox, label in zip(scores, bboxes, labels) if label == 1]
                 shapes = [(box(bbox[0], bbox[1], bbox[2], bbox[3]), score) for bbox, score in shapes if threshold_max >= score >= threshold_min]
                 
                 if len(shapes)>0:

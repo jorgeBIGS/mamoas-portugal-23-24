@@ -71,7 +71,7 @@ SHP_DIRECTORY = 'data/shapes'
 
 #parámetros de inference
 INCLUDE_TRAIN = True
-TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
+TEST_IMAGE = 'data/original/COMB-Arcos_2.tif'
 TEMPORAL = 'data/tmp'
 SHAPES_OUTPUT = 'data/shapes'
 

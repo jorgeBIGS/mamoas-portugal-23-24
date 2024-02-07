@@ -11,14 +11,14 @@ os.makedirs(TEMPORAL, exist_ok=True)
 os.makedirs(SHAPES_OUTPUT, exist_ok=True)
 #['cascade_rcnn', 'faster_rcnn', 'retinanet']
 models_l1 = ['faster_rcnn']
-thresholds_min_l1 = [0]*3
+thresholds_min_l1 = [0.5]*3
 thresholds_max_l1 = [1]*3
-iou_threshold_l1 = [1]*3
+iou_threshold_l1 = [0.25]*3
 
 models_l2 = ['faster_rcnn']
-thresholds_min_l2 = [0]*3
+thresholds_min_l2 = [0.5]*3
 thresholds_max_l2 = [1]*3
-iou_threshold_l2 = [1]*3
+iou_threshold_l2 = [0.25]*3
 
 
 if LEVEL == 'L1':
