@@ -11,7 +11,8 @@ import auxiliar.images as images
 from PIL import Image
 from mmcv.ops import nms
 
-from mmdetection.configs.mamoas_detection import LEVEL, OVERLAP, SHAPES_OUTPUT, SIZE, TEMPORAL
+from mmdetection.configs.mamoas_detection import OVERLAP, SHAPES_OUTPUT, SIZE, TEMPORAL
+
 
 def infere(model_name, model_path, model_config_path, test_image, threshold_min=0.5, threshold_max=1.0, check_point_file:str='last_checkpoint', iou_threshold_min:float=0.5)->None:
 
@@ -26,7 +27,7 @@ def infere(model_name, model_path, model_config_path, test_image, threshold_min=
 
 
     # Guarda el archivo shapefile
-    SHAPE_NAME = test_image.split('/')[-1].replace('.tif','') + str(LEVEL) + '-' + model_name + '.shp'
+    SHAPE_NAME = test_image.split('/')[-1].replace('.tif','') + '-' + model_name + '.shp'
     output_shapefile = SHAPES_OUTPUT + '/' + SHAPE_NAME
 
 

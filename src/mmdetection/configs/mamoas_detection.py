@@ -1,80 +1,42 @@
-LEVEL = 'L1'
-
-#parámetros de preprocessing
-BUFFER_SIZES = [2.5, 5, 7.5]
-RES_MIN = BUFFER_SIZES[0]
-PERCENTILE = 0.5
 ORIGINALES = 'data/original'
-TRUE_DATA = ORIGINALES + '/Mamoas-Laboreiro.shp'
-TRUE_IMAGE = ORIGINALES + '/COMB-Laboreiro.tif'
-
-LEAVE_ONE_OUT_BOOL = False
-INCLUDE_ALL_IMAGES = False
-
-COMPLETE_BBOX_OVERLAP=False
-LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
-
-
-SIZE_L1 = 200
-OVERLAP_L1 = [0, SIZE_L1//2]
-MODEL_PATH_L1 = 'data/model_l1/'
-
-OUTPUT_DATA_ROOT_L1= 'data/mamoas-laboreiro_l1/'
-DST_IMAGE_DIR_L1 = OUTPUT_DATA_ROOT_L1 + "tiles/"
-DST_VALID_TILES_L1 = OUTPUT_DATA_ROOT_L1 + "valid_tiles/"
-DST_DATA_ANNOTATION_L1 = OUTPUT_DATA_ROOT_L1 + "annotations/"
-DST_DATA_LOO_CV_L1 = DST_DATA_ANNOTATION_L1 + "loo_cv/"
-DST_DATA_IMAGES_L1 = OUTPUT_DATA_ROOT_L1 + "images/"
-TRUE_SHAPE_L1= ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
-
-SIZE_L2 = SIZE_L1
-OVERLAP_L2 = OVERLAP_L1
-MODEL_PATH_L2 = 'data/model_l2/'
-
-OUTPUT_DATA_ROOT_L2 = 'data/mamoas-laboreiro_l2/'
-DST_IMAGE_DIR_L2 = OUTPUT_DATA_ROOT_L2 + "tiles/"
-DST_VALID_TILES_L2 = OUTPUT_DATA_ROOT_L2 + "valid_tiles/"
-DST_DATA_ANNOTATION_L2 = OUTPUT_DATA_ROOT_L2 + "annotations/"
-DST_DATA_LOO_CV_L2 = DST_DATA_ANNOTATION_L2 + "loo_cv/"
-DST_DATA_IMAGES_L2 = OUTPUT_DATA_ROOT_L2 + "images/"
-TRUE_SHAPE_L2 = 'data/training/COMB-LaboreiroL1-faster_rcnn.shp'
-
-#parámetros de training
-MODEL_CONFIG_ROOT = "src/mmdetection/configs/models/"
-
-if LEVEL == 'L1':
-    MODEL_PATH = MODEL_PATH_L1
-    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L1
-    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L1 
-    SIZE = SIZE_L1
-    OVERLAP = OVERLAP_L1
-    TRUE_SHAPE = TRUE_SHAPE_L1
-else:
-    MODEL_PATH = MODEL_PATH_L2
-    TRAINING_DATA_ROOT = OUTPUT_DATA_ROOT_L2
-    VAL_DATA_ROOT = OUTPUT_DATA_ROOT_L2
-    SIZE = SIZE_L2
-    OVERLAP = OVERLAP_L2
-    TRUE_SHAPE = TRUE_SHAPE_L2
-
-
-#parámetros de optimización
-NUM_GENERATIONS=50
-NUM_INDIVIDUALS=100
-NUM_PARENT_MATING = 2
-ELITISM = 2
-MUTATION_PERCENT = 80
-NUM_THREADS = 15
-
-
-SHP_DIRECTORY = 'data/shapes'
-
-#parámetros de inference
-INCLUDE_TRAIN = True
-TEST_IMAGE = 'data/original/COMB-Arcos_2.tif'
-TEMPORAL = 'data/tmp'
 SHAPES_OUTPUT = 'data/shapes'
 
+# Parámetros generación datasets
+IMAGE = ORIGINALES + '/COMB-Laboreiro.tif'
+TRAINING_SHAPE = ORIGINALES + '/Mamoas-Laboreiro-cuadrados-15.shp'
+TRUE_DATA = ORIGINALES + '/Mamoas-Laboreiro.shp'
+SIZE = 200
+OVERLAP = [0, 100]
+INCLUDE_ALL_IMAGES = False
+LEAVE_ONE_OUT_BOOL = False
+COMPLETE_BBOX_OVERLAP=False
+LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
+OUTPUT_DATA_ROOT= 'data/mamoas-laboreiro/'
+OUTPUT_SHAPE = SHAPES_OUTPUT + '/Mamoas-Laboreiro.shp'
+
+
+
+#parámetros de preprocesamiento
+#BUFFER_SIZES = [2.5, 5, 7.5]
+#RES_MIN = BUFFER_SIZES[0]
+#PERCENTILE = 0.5
+
+#parámetros de training
+
+#parámetros de optimización
+#NUM_GENERATIONS=50
+#NUM_INDIVIDUALS=100
+#NUM_PARENT_MATING = 2
+#ELITISM = 2
+#MUTATION_PERCENT = 80
+#NUM_THREADS = 15
+
+#parámetros de training/inference
+MODEL_CONFIG_ROOT = "src/mmdetection/configs/models/"
+MODEL_PATH = 'data/model/'
+INCLUDE_TRAIN = True
+TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
+TEMPORAL = 'data/tmp'
 
 dataset_type = 'CocoDataset'
 metainfo = {
@@ -85,7 +47,6 @@ metainfo = {
 }
 
 backend_args = None
-
 # img_scales = [(200, 200), (400, 400), (600, 600)]
 img_scales = [(SIZE, SIZE)]
 
@@ -138,7 +99,7 @@ train_dataloader = dict(
     batch_sampler=dict(type='AspectRatioBatchSampler'),
     dataset=dict(
         type=dataset_type,
-        data_root=TRAINING_DATA_ROOT,
+        data_root=OUTPUT_DATA_ROOT,
         metainfo=metainfo,
         ann_file='annotations/all.json',
         data_prefix=dict(img='images/'),
@@ -154,7 +115,7 @@ val_dataloader = dict(
     sampler=dict(type='DefaultSampler', shuffle=False),
     dataset=dict(
         type=dataset_type,
-        data_root=VAL_DATA_ROOT,
+        data_root=OUTPUT_DATA_ROOT,
         metainfo=metainfo,
         ann_file='annotations/all.json',
         data_prefix=dict(img='images/'),
@@ -166,7 +127,7 @@ test_dataloader = val_dataloader
 
 val_evaluator = dict(
     type='CocoMetric',
-    ann_file=VAL_DATA_ROOT + 'annotations/all.json',
+    ann_file=OUTPUT_DATA_ROOT + 'annotations/all.json',
     metric='bbox',
     format_only=False,
     backend_args=backend_args)
