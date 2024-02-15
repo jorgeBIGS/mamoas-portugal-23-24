@@ -47,7 +47,7 @@ def convert_geotiff_to_tiff(input_path:str, min_max:list[tuple[float, float]], o
         # Escala los valores de Float32 a Byte (0-255)
         data[0] = np.interp(data[0], (min_max[0][0], min_max[0][1]), (0, 255))
         data[1] = np.interp(data[1], (min_max[1][0], min_max[1][1]), (0, 255))
-        data[2] = np.interp(data[2], (min_max[2][0], min_max[2][1]), (0, 255)) #(data[2].min(), data[2].max())
+        data[2] = np.interp(data[2], (min_max[2][0], min_max[2][1]), (0, 255)) #
         data = np.rint(data).astype(np.uint8)
         
         # Elimina cualquier referencia a la información geoespacial y las coordenadas

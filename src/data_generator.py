@@ -16,7 +16,6 @@ def check_included(bboxes, bbox):
 def generate_coco_annotations(image_filenames:list[str], 
                               train, 
                               output_file:str, 
-                              output_directory:str, 
                               resolution_min:int, 
                               complete_bbox:bool, 
                               percentage_cover:float, 
@@ -212,6 +211,12 @@ def mamoas_tiles(tif_name:str,
 
     img = rasterio.open(tif_name)
 
+    data = img.read()
+    min_max = list()
+    min_max.append((data[0].min(), data[0].max()))
+    min_max.append((data[1].min(), data[1].max()))
+    min_max.append((data[2].min(), data[2].max()))
+
     generate_tiles(img, size, overlap, destiny_images)
 
     tile_paths = os.listdir(destiny_images)
@@ -239,10 +244,10 @@ def mamoas_tiles(tif_name:str,
 
         if rgb.sum() > 0 and np.mean(rgb) !=255 and (include_all or len(bounding_boxes)>0): 
             shutil.move(f"{destiny_images}{each}",f"{destiny_valid_images}{each}")
-            convert_geotiff_to_tiff(f"{destiny_valid_images}{each}", f"{coco_data}{each}")
+            convert_geotiff_to_tiff(f"{destiny_valid_images}{each}", min_max, f"{coco_data}{each}")
             valid_paths.append(f"{destiny_valid_images}{each}")
 
-    info = generate_coco_annotations(valid_paths, training, f"{coco_data_annotation}all.json", coco_data, resolution_min, complete_bbox, percentage_cover)
+    info = generate_coco_annotations(valid_paths, training, f"{coco_data_annotation}all.json", resolution_min, complete_bbox, percentage_cover)
     
     if leave_one_out:
         loo_data:str = output_data_root + "loo_cv/"
@@ -252,8 +257,8 @@ def mamoas_tiles(tif_name:str,
             training_set.remove(each)
             test_set = list()
             test_set.append(each)
-            generate_coco_annotations(test_set, training, f"{loo_data}test{index}.json", coco_data, resolution_min, complete_bbox, percentage_cover, info)
-            generate_coco_annotations(training_set, training, f"{loo_data}training{index}.json", coco_data, resolution_min, complete_bbox, percentage_cover, info)
+            generate_coco_annotations(test_set, training, f"{loo_data}test{index}.json", resolution_min, complete_bbox, percentage_cover, info)
+            generate_coco_annotations(training_set, training, f"{loo_data}training{index}.json", resolution_min, complete_bbox, percentage_cover, info)
     
     return valid_paths
 
