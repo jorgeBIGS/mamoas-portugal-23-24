@@ -31,7 +31,7 @@ def get_tile_profile(parent_tif:rasterio.io.DatasetReader, pixel_x:int, pixel_y:
             )
     return profile
 
-def convert_geotiff_to_tiff(input_path, output_path):
+def convert_geotiff_to_tiff(input_path:str, min_max:list[tuple[float, float]], output_path:str)->None:
     """
     Convierte un archivo GeoTIFF en un archivo TIFF estándar, escala los valores de Float32 a Byte (0-255).
 
@@ -45,9 +45,9 @@ def convert_geotiff_to_tiff(input_path, output_path):
         profile = src.profile
 
         # Escala los valores de Float32 a Byte (0-255)
-        data[0] = np.interp(data[0], (data[0].min(), data[0].max()), (0, 255))
-        data[1] = np.interp(data[1], (data[1].min(), data[1].max()), (0, 255))
-        data[2] = np.interp(data[2], (data[2].min(), data[2].max()), (0, 255))
+        data[0] = np.interp(data[0], (min_max[0][0], min_max[0][1]), (0, 255))
+        data[1] = np.interp(data[1], (min_max[1][0], min_max[1][1]), (0, 255))
+        data[2] = np.interp(data[2], (min_max[2][0], min_max[2][1]), (0, 255)) #(data[2].min(), data[2].max())
         data = np.rint(data).astype(np.uint8)
         
         # Elimina cualquier referencia a la información geoespacial y las coordenadas
