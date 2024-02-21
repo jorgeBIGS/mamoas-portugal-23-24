@@ -1,13 +1,16 @@
 import json
 import shutil
 import os
+from pandas import DataFrame
 
 from pyproj import CRS
-from auxiliar.images import *
+from auxiliar.images.images import *
 import geopandas as gpd
-from mmdetection.configs.mamoas_detection import *
+from auxiliar.mmdetection.configs.mamoas_detection import *
 import gc
 from shapely.geometry import Polygon
+
+
 
 def check_included(bboxes, bbox):
     result = [a['bbox'] for a in bboxes]
@@ -139,14 +142,16 @@ def check_area(tile, bbox):
 
 def refine(training, true_data):
     # Cargar el shapefile que contiene los elementos para la actualización
-    shp_actualizar = gpd.read_file(true_data)
+    # shp_actualizar = gpd.read_file(true_data)
+    shp_1 = gpd.GeoDataFrame(training, crs = training.crs)
+    shp_2 = gpd.GeoDataFrame(true_data, crs = true_data.crs)
 
      # Realizar la intersección con sufijos en los campos
-    shp_interseccion = gpd.sjoin(training, shp_actualizar, how='left', predicate='intersects')
+    shp_interseccion = gpd.sjoin(shp_1, shp_2, how='left', predicate='intersects')
 
     # Actualizar el campo deseado solo donde hay solape
-    shp_interseccion['es_mamoa'] = shp_interseccion['es_mamoa'].fillna(0)
-
+    shp_interseccion['es_mamoa'] = shp_interseccion.apply(lambda row: 1 if row['index_right'] != None else 0, axis=1)
+   
     # Descartar las geometrías y campos no necesarios
     columnas_resultado = ['es_mamoa', 'geometry']
     shp_resultado = shp_interseccion[columnas_resultado]
@@ -171,19 +176,20 @@ def check_train(tile_bounds, train, complete_bbox_overlap:bool, lenient_bbox_ove
 
     return result
 
-def get_training(shapefile:str)->list:
-    #result = []
+def buffering(shapefile:str, buffer:float)->DataFrame:
     gdf = gpd.read_file(shapefile)
-    return gdf
+    # Note cap_style: round = 1, flat = 2, square = 3
+    gdf = gdf.geometry.buffer(buffer, cap_style=3)
+    return gpd.GeoDataFrame(geometry=gdf.geometry)
 
-    #for x in gdf.values:
-    #   result.append(x)
-    #return result
+
+def get_training(shapefile:str, buffer_size:float)->DataFrame:
+    return buffering(shapefile, buffer_size)
 
 
 def mamoas_tiles(tif_name:str, 
-                 shapefile:str, 
                  true_data:str,
+                 buffer:float,
                  include_all:bool, 
                  leave_one_out:bool, 
                  size:int, 
@@ -207,7 +213,8 @@ def mamoas_tiles(tif_name:str,
     coco_data_annotation:str = output_data_root + "annotations/"
     os.makedirs(coco_data_annotation, exist_ok=True)
     
-    training = refine(get_training(shapefile), true_data)
+    training = get_training(true_data, buffer)
+    training = refine(training, training)
 
     img = rasterio.open(tif_name)
 
@@ -262,7 +269,7 @@ def mamoas_tiles(tif_name:str,
     
     return valid_paths
 
-def save_shape(rectangles: list, crs:CRS, name:str)->None:
+def save_shape(rectangles: list[tuple[float, float, float, float]], crs:CRS, name:str)->None:
     data_dicts = [{'Name': '',
                'X': (bounding_box[0] + bounding_box[2]) / 2,
                'Y': (bounding_box[1] + bounding_box[3]) / 2,
@@ -281,9 +288,9 @@ def save_shape(rectangles: list, crs:CRS, name:str)->None:
     # Guardar el GeoDataFrame como un archivo shape
     rectangles.to_file(name)
    
-def generate_training_dataset(image:str, 
-                             training_shape: str, 
+def generate_training_dataset(image:str,
                              true_data:str,
+                             buffer_size:float,
                              size:int, 
                              resolution_min:float,
                              overlapping: list[int], 
@@ -297,8 +304,10 @@ def generate_training_dataset(image:str,
     #https://mmdetection.readthedocs.io/en/v2.2.0/tutorials/new_dataset.html
     shutil.rmtree(output_data_root, ignore_errors=True)
     
-    valid_images = mamoas_tiles(image, training_shape, true_data, include_all_in_training, generate_loo_training, size, resolution_min, overlapping, complete_bbox, percentage_cover, output_data_root)
-
+    valid_images = mamoas_tiles(image, true_data, buffer_size, include_all_in_training, generate_loo_training, size, resolution_min, overlapping, complete_bbox, percentage_cover, output_data_root)
+    
+    '''#TODO: Mejora para introducir siguientes niveles de generación de tiles (tamaños mayores)
     if len(valid_images)>0:
         save_shape([get_image_dimensions(image)[2] for image in valid_images], 
-                   get_image_dimensions(valid_images[0])[3], output_shape)
+                   get_image_dimensions(valid_images[0])[3], output_shape)'''
+    return valid_images

@@ -85,7 +85,7 @@ def generate_tiles(tif:rasterio.io.DatasetReader, size:int, overlap: List[int], 
                     # creating the tile specific profile
                     profile = get_tile_profile(tif, x, y)
                     # extracting the pixel data (couldnt understand as i dont think thats the correct way to pass the argument)
-                    tile_data = tif.read(window=((y, y + size), (x, x + size)),
+                    tile_data = tif.read(window=((y, y + size if y + size < tif.height else tif.height), (x, x + size if x + size < tif.width else tif.width)),
                                         boundless=True, fill_value=profile['nodata'])[:3]
                     i+=1
                     _, dst_tile_path = get_tile_name_path(dst_dir, i)

@@ -7,14 +7,12 @@ import rasterio
 import rasterio.transform as transform
 from shapely.geometry import box
 import numpy as np
-import auxiliar.images as images
+import auxiliar.images.images as images
 from PIL import Image
 from mmcv.ops import nms
 
-from mmdetection.configs.mamoas_detection import OVERLAP, SHAPES_OUTPUT, SIZE, TEMPORAL
 
-
-def infere(model_name, model_path, model_config_path, test_image, threshold_min=0.5, threshold_max=1.0, check_point_file:str='last_checkpoint', iou_threshold_min:float=0.5)->None:
+def infere(temporal:str, size:int, overlap:int,  model_name:str, model_path:str, model_config_path:str, test_image:str, cuda_device:int, output_shapefile:str, threshold_min:float=0.5, threshold_max:float=1.0, iou_threshold_min:float=0.5, check_point_file:str='last_checkpoint')->None:
 
     # Specify the path to model config and checkpoint file
     config_file = model_config_path + model_name + '.py'
@@ -25,27 +23,27 @@ def infere(model_name, model_path, model_config_path, test_image, threshold_min=
     # Ruta al archivo TIFF georeferenciado de entrada
     input_tiff = test_image
 
-
-    # Guarda el archivo shapefile
-    SHAPE_NAME = test_image.split('/')[-1].replace('.tif','') + '-' + model_name + '.shp'
-    output_shapefile = SHAPES_OUTPUT + '/' + SHAPE_NAME
-
-
     # Build the model from a config file and a checkpoint file
-    model = init_detector(config_file, checkpoint=check_point, device='cuda:0')
+    model = init_detector(config_file, checkpoint=check_point, device='cuda:' + str(cuda_device))
     
     # Abre la imagen TIFF y genera tiles y copias sin georreferenciar.
     with rasterio.open(input_tiff) as original:
-        paths = os.listdir(TEMPORAL)
+        data = original.read()
+        min_max = list()
+        min_max.append((data[0].min(), data[0].max()))
+        min_max.append((data[1].min(), data[1].max()))
+        min_max.append((data[2].min(), data[2].max()))
+        
+        paths = os.listdir(temporal)
         paths_no_geo = []
         if len(paths)==0:
-            paths = images.generate_tiles(original, SIZE, OVERLAP, TEMPORAL)
+            paths = images.generate_tiles(original, size, overlap, temporal)
             for path in paths:
                 path_output =  path.replace('.tif', "rgb.tif")
                 paths_no_geo.append(path_output)
-                images.convert_geotiff_to_tiff(path, path_output)
+                images.convert_geotiff_to_tiff(path, min_max, path_output)
         else:
-            paths = [TEMPORAL + '/' + path for path in paths if not '_rgb' in path]
+            paths = [temporal + '/' + path for path in paths if not '_rgb' in path]
             paths_no_geo = [path.replace('.tif', "rgb.tif") for path in paths if not '_rgb' in path]
             
             

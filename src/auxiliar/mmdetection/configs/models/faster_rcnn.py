@@ -1,3 +1,5 @@
+
+
 _base_ =[
     '../_base_/models/faster-rcnn_r50_fpn.py',
     '../_base_/schedules/schedule_2x.py', 
@@ -30,8 +32,8 @@ model = dict(
     train_cfg = dict(max_epochs=24, val_interval=1),
     test_cfg=dict(
         rcnn=dict(
-            score_thr=0.5, # Default:0.05
-            nms=dict(type='nms', iou_threshold=0.25),
+            score_thr=0.05, # Default:0.05
+            nms=dict(type='nms', iou_threshold=0.5),
             max_per_img=5))
 )
 

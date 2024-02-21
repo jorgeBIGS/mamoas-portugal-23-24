@@ -7,7 +7,7 @@ def train(config_file, work_dir_fold, training_root, validation_root):
     # Train model
     # Note that train/val data_root and ann_file should be changed depending on the dataset(15/30/60) [This is to avoid having three diferent .py config files, we can modify the fields as script arguments]
     # Logs and checkpoint are saved in folds/#NUM_FOLD#    
-    subprocess.run(["python3", "src/mmdetection/scripts_mamoas/tools/train.py", config_file, 
+    subprocess.run(["python3", "src/auxiliar/mmdetection/scripts_mamoas/tools/train.py", config_file, 
                     f"--work-dir={work_dir_fold}", 
                     "--cfg-options", 
                     f"train_dataloader.dataset.data_root={training_root}",

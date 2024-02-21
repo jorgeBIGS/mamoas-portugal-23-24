@@ -1,30 +1,37 @@
 import os
 import shutil
-from inferencer import infere
-from mmdetection.configs.mamoas_detection import *
-from trainer import train
+from auxiliar.inferencer import infere
+from auxiliar.mmdetection.configs.mamoas_detection import *
+from auxiliar.trainer import train
 
-
-shutil.rmtree(TEMPORAL, ignore_errors=True)
-
-os.makedirs(TEMPORAL, exist_ok=True)
-
-os.makedirs(SHAPES_OUTPUT, exist_ok=True)
-#['cascade_rcnn', 'faster_rcnn', 'retinanet']
-models = ['faster_rcnn']
-thresholds_min = [0.5]*3
-thresholds_max = [1]*3
-iou_threshold = [0.25]*3
-
-for i, model in enumerate(models):
+def train_models(models: list[str], training_data_root:str,validation_data_root:str, 
+          model_config_root:str, model_path:str)->None:
+    for model in models:
         try:
-        # Train model
-            if  INCLUDE_TRAIN:
-                train(config_file = MODEL_CONFIG_ROOT + model + '.py', work_dir_fold=MODEL_PATH + model,training_root=OUTPUT_DATA_ROOT, validation_root=OUTPUT_DATA_ROOT) 
-
-            # Inference 
-            infere(model, MODEL_PATH, MODEL_CONFIG_ROOT, TEST_IMAGE, threshold_min=thresholds_min[i], threshold_max=thresholds_max[i], iou_threshold_min=iou_threshold[i])
+            train(config_file = model_config_root + model + '.py', 
+                  work_dir_fold=model_path + model,training_root=training_data_root, 
+                  validation_root=validation_data_root) 
         except Exception as e:
-            print('Error en ', model)
+            print('Error en training de ', model)
             print(e)
             print(25*'-----------------\n')
+
+def apply_models(models: list[str], model_config_root:str, model_path:str, 
+         test_image: str, temporal:str, size:int, overlap:int, shapes_output: str, 
+         score_min:float=0., score_max:float = 1.0, iou_threshold:float=0.25)->None:
+    
+    shutil.rmtree(temporal, ignore_errors=True)
+    os.makedirs(temporal, exist_ok=True)
+    os.makedirs(shapes_output, exist_ok=True)
+
+
+
+    for model in models:
+        # Guarda el archivo shapefile
+        shape_name = test_image.split('/')[-1].replace('.tif','') + '-' + model + '.shp'
+        output_shapefile = shapes_output + '/' + shape_name
+
+        infere(temporal, size, overlap, model, model_path, model_config_root, test_image, 0, output_shapefile, threshold_min=score_min, threshold_max=score_max, iou_threshold_min=iou_threshold)
+
+
+

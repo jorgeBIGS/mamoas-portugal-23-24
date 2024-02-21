@@ -1,3 +1,5 @@
+
+
 _base_ = [
     '../_base_/models/retinanet_r50_fpn.py',
     '../_base_/schedules/schedule_2x.py', 
@@ -33,7 +35,7 @@ model = dict(
         rcnn=dict(
             score_thr=0.05, # Default:0.05
             nms=dict(type='nms', iou_threshold=0.5),
-            max_per_img=100))
+            max_per_img=5))
 ))
 
 default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))

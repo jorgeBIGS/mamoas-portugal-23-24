@@ -38,7 +38,7 @@ model = dict(
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
-                num_classes=1,
+                num_classes=2,
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
@@ -72,7 +72,7 @@ model = dict(
         rcnn=dict(
             score_thr=0.05, # Default:0.05
             nms=dict(type='nms', iou_threshold=0.5),
-            max_per_img=100))
+            max_per_img=5))
 )
 
 default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))
