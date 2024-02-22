@@ -5,6 +5,8 @@ _base_ = [
     '../mamoas_detection.py'
 ]
 
+NUM_CLASSES = 1
+
 model = dict(
     roi_head=dict(
         type='CascadeRoIHead',
@@ -21,7 +23,7 @@ model = dict(
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
-                num_classes=2,
+                num_classes=NUM_CLASSES,
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
@@ -38,7 +40,7 @@ model = dict(
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
-                num_classes=2,
+                num_classes=NUM_CLASSES,
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
@@ -55,7 +57,7 @@ model = dict(
                 in_channels=256,
                 fc_out_channels=1024,
                 roi_feat_size=7,
-                num_classes=2,
+                num_classes=NUM_CLASSES,
                 bbox_coder=dict(
                     type='DeltaXYWHBBoxCoder',
                     target_means=[0., 0., 0., 0.],
@@ -71,8 +73,8 @@ model = dict(
     test_cfg=dict(
         rcnn=dict(
             score_thr=0.05, # Default:0.05
-            nms=dict(type='nms', iou_threshold=0.5),
-            max_per_img=5))
+            nms=dict(type='nms', iou_threshold=0.45),
+            max_per_img=50))
 )
 
 default_hooks = dict(checkpoint=dict(type='CheckpointHook', interval=-1))
