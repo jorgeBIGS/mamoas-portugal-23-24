@@ -96,7 +96,10 @@ def generate_tiles(tif:rasterio.io.DatasetReader, size:int, overlap: List[int], 
                         count=c,
                         dtype=tile_data.dtype,
                     )
-                    with rasterio.open(dst_tile_path, "w", **profile) as dst:
-                        dst.write(tile_data)
-                        result += [dst_tile_path]
+                    try:
+                        with rasterio.open(dst_tile_path, "w", **profile) as dst:
+                            dst.write(tile_data)
+                            result += [dst_tile_path]
+                    except:
+                        print('Not valid tile' + str(profile))
     return result

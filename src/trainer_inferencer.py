@@ -18,7 +18,7 @@ def train_models(models: list[str], training_data_root:str,validation_data_root:
 
 def apply_models(models: list[str], model_config_root:str, model_path:str, 
          test_image: str, temporal:str, size:int, overlap:int, shapes_output: str, 
-         score_min:float=0., score_max:float = 1.0, iou_threshold:float=0.25)->None:
+         score_min:float=0.5, score_max:float = 1.0, iou_threshold:float=0.05)->None:
     
     shutil.rmtree(temporal, ignore_errors=True)
     os.makedirs(temporal, exist_ok=True)
@@ -31,7 +31,7 @@ def apply_models(models: list[str], model_config_root:str, model_path:str,
         shape_name = test_image.split('/')[-1].replace('.tif','') + '-' + model + '.shp'
         output_shapefile = shapes_output + '/' + shape_name
 
-        infere(temporal, size, overlap, model, model_path, model_config_root, test_image, 0, output_shapefile, threshold_min=score_min, threshold_max=score_max, iou_threshold_min=iou_threshold)
+        infere(temporal, size, overlap, model, model_path, model_config_root, test_image, 0, output_shapefile, threshold_min=score_min, threshold_max=score_max, iou_threshold_max=iou_threshold)
 
 
 

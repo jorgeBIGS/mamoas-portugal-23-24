@@ -1,18 +1,21 @@
 ORIGINALES = 'data/original'
-SHAPES_OUTPUT = 'data/shapes'
+SHAPES_OUTPUT_ROOT = 'data/shapes'
 
 # Parámetros generación datasets
-IMAGE = ORIGINALES + '/COMB-Laboreiro_2.tif' 
+IMAGE = ORIGINALES + '/COMB-Laboreiro.tif' 
 OUTPUT_DATA_ROOT= 'data/mamoas-laboreiro/'
-OUTPUT_SHAPE = SHAPES_OUTPUT + '/Mamoas-Laboreiro.shp'
-#IMAGE = ORIGINALES + '/COMB-Arcos_2.tif'
-#OUTPUT_DATA_ROOT= 'data/mamoas-arcos/'
-#OUTPUT_SHAPE = SHAPES_OUTPUT + '/Mamoas-Arcos.shp'
-#IMAGE = ORIGINALES + '/COMB-Laboreiro-Arcos.tif'
-#OUTPUT_DATA_ROOT= 'data/mamoas-laboreiro-arcos/'
-#OUTPUT_SHAPE = SHAPES_OUTPUT + '/Mamoas-Laboreiro-Arcos.shp'
-BUFFER = 15
 TRUE_DATA = ORIGINALES + '/Mamoas-Laboreiro.shp'
+OUTPUT_SHAPE = SHAPES_OUTPUT_ROOT + '/Mamoas-Laboreiro.shp' 
+'''IMAGE = ORIGINALES + '/COMB-Arcos_2.tif'
+OUTPUT_DATA_ROOT= 'data/mamoas-arcos/'
+OUTPUT_SHAPE = SHAPES_OUTPUT_ROOT + '/Mamoas-Arcos.shp'
+TRUE_DATA = ORIGINALES + '/Mamoas-Arcos.shp' '''
+IMAGE = ORIGINALES + '/COMB-Laboreiro-Arcos.tif'
+OUTPUT_DATA_ROOT= 'data/mamoas-laboreiro-arcos/'
+OUTPUT_SHAPE = SHAPES_OUTPUT_ROOT + '/Mamoas-Laboreiro-Arcos.shp'
+TRUE_DATA = ORIGINALES + '/Mamoas-Arcos.shp'
+
+BUFFER = 15
 SIZE = 200
 OVERLAP = [0,50]
 INCLUDE_ALL_IMAGES = False
@@ -28,11 +31,17 @@ LENIENT_BBOX_OVERLAP_PERCENTAGE = 0.5
 #MUTATION_PERCENT = 80
 #NUM_THREADS = 15
 
-#parámetros de training/inference 'faster_rcnn', 'retinanet', 
-MODELS = ['cascade_rcnn']
+#parámetros de training 
+MODELS = ['retinanet'] #, 'faster_rcnn', 'cascade_rcnn'
 MODEL_CONFIG_ROOT = "src/auxiliar/mmdetection/configs/models/"
 MODEL_PATH = 'data/model/'
 TEMPORAL = 'data/tmp'
+SCORES = [0.5]
+TRAINING_DATA_ROOT= 'data/mamoas-laboreiro/'
+TEST_DATA_ROOT= 'data/mamoas-arcos/'
+VALIDATION_DATA_ROOT= 'data/mamoas-laboreiro-arcos/'
+
+#parámetros de inference 
 TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
 
 

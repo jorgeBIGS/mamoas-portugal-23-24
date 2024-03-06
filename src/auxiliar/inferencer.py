@@ -12,7 +12,7 @@ from PIL import Image
 from mmcv.ops import nms
 
 
-def infere(temporal:str, size:int, overlap:int,  model_name:str, model_path:str, model_config_path:str, test_image:str, cuda_device:int, output_shapefile:str, threshold_min:float=0.5, threshold_max:float=1.0, iou_threshold_min:float=0.5, check_point_file:str='last_checkpoint')->None:
+def infere(temporal:str, size:int, overlap:int,  model_name:str, model_path:str, model_config_path:str, test_image:str, cuda_device:int, output_shapefile:str, threshold_min:float=0.5, threshold_max:float=1.0, iou_threshold_max:float=0.5, check_point_file:str='last_checkpoint')->None:
 
     # Specify the path to model config and checkpoint file
     config_file = model_config_path + model_name + '.py'
@@ -64,7 +64,7 @@ def infere(temporal:str, size:int, overlap:int,  model_name:str, model_path:str,
                 bboxes = result['pred_instances']['bboxes']
                 labels = result['pred_instances']['labels']
 
-                dets, indices = nms(bboxes, scores, iou_threshold_min, score_threshold= threshold_min)
+                dets, indices = nms(bboxes, scores, iou_threshold_max, score_threshold= threshold_min)
 
                 scores = dets[:, -1].tolist()
                 bboxes = dets[:, 0:-1].tolist()

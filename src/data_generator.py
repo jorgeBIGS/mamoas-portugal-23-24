@@ -25,13 +25,14 @@ def generate_coco_annotations(image_filenames:list[str],
                               limites:dict[str, tuple[float,float,tuple[float, float, float, float]]] = dict()):
     categories = []
 
+    '''
     # Crea la categoría "mamoa" en el archivo de anotaciones
     category = {
         'id': 0,
         'name': 'not_mamoa',
         'supercategory': 'object'
     }
-    categories.append(category)
+    categories.append(category)'''
     
     category = {
         'id': 1,
@@ -66,7 +67,7 @@ def generate_coco_annotations(image_filenames:list[str],
         # Genera las anotaciones para cada bounding box
         lista = check_train(bounds, train, complete_bbox, percentage_cover)
         bboxes_1 = []
-        for bbox,categoria in lista:
+        for bbox,_ in lista:
             left, bottom, right, top = bbox.bounds
             w, h = max(abs(right-left), resolution_min), max(abs(top-bottom), resolution_min)
            
@@ -91,7 +92,7 @@ def generate_coco_annotations(image_filenames:list[str],
                 annotation = {
                     'id': id_annot,
                     'image_id': image_id,
-                    'category_id': categoria,  # ID de la categoría
+                    'category_id': 1,  # ID de la categoría
                     'bbox': aux_bbox,
                     'area': w * h,
                     'iscrowd': 0
@@ -183,13 +184,14 @@ def buffering(shapefile:str, buffer:float)->DataFrame:
     return gpd.GeoDataFrame(geometry=gdf.geometry)
 
 
-def get_training(shapefile:str, buffer_size:float)->DataFrame:
-    return buffering(shapefile, buffer_size)
+def get_buffered_training(shapefile:str, buffer_size:float)->DataFrame:
+    training = buffering(shapefile, buffer_size)
+    training = refine(training, training)
+    return training
 
 
 def mamoas_tiles(tif_name:str, 
-                 true_data:str,
-                 buffer:float,
+                 training:DataFrame,
                  include_all:bool, 
                  leave_one_out:bool, 
                  size:int, 
@@ -213,8 +215,7 @@ def mamoas_tiles(tif_name:str,
     coco_data_annotation:str = output_data_root + "annotations/"
     os.makedirs(coco_data_annotation, exist_ok=True)
     
-    training = get_training(true_data, buffer)
-    training = refine(training, training)
+
 
     img = rasterio.open(tif_name)
 
@@ -288,9 +289,8 @@ def save_shape(rectangles: list[tuple[float, float, float, float]], crs:CRS, nam
     # Guardar el GeoDataFrame como un archivo shape
     rectangles.to_file(name)
    
-def generate_training_dataset(image:str,
-                             true_data:str,
-                             buffer_size:float,
+def generate_dl_dataset(image:str,
+                             training:DataFrame,
                              size:int, 
                              resolution_min:float,
                              overlapping: list[int], 
@@ -304,7 +304,7 @@ def generate_training_dataset(image:str,
     #https://mmdetection.readthedocs.io/en/v2.2.0/tutorials/new_dataset.html
     shutil.rmtree(output_data_root, ignore_errors=True)
     
-    valid_images = mamoas_tiles(image, true_data, buffer_size, include_all_in_training, generate_loo_training, size, resolution_min, overlapping, complete_bbox, percentage_cover, output_data_root)
+    valid_images = mamoas_tiles(image, training, include_all_in_training, generate_loo_training, size, resolution_min, overlapping, complete_bbox, percentage_cover, output_data_root)
     
     '''#TODO: Mejora para introducir siguientes niveles de generación de tiles (tamaños mayores)
     if len(valid_images)>0:
