@@ -8,3 +8,4 @@ torchvision
 tifffile
 openmim
 pygad
+torch_topological

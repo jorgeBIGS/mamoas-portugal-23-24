@@ -15,7 +15,7 @@ Vamos a seguir principalmente un tutorial bastante reciente en python: https://m
 - source .env/bin/activate
 - pip install -r config/requirements.txt
 
-6. Nos aseguramos que existe una carpeta “data” con una combinación de 3 rasters (combinacion.tif) dentro. Ejecutamos el preprocesado y el resultado debe ser un conjunto de carpetas con las imágenes que contienes mamoas y un conjunto de ficheros json que nos ayudarán a entrenar las redes en formato COCO. Ojo que el fichero shape solo tenía POINTS de entrenamiento, cuando hubiésemos necesitado rectángulos. He generado varios shapes con cuadrados falsos de 30x30, 15x15 y 60x60  metros que potencialmente contendría las mamoas para poder hacer pruebas. Se generan en QGIS igual que en el paso 2 pero con valores 7.5,15 y 30 de “radio”.
+6. Nos aseguramos que existe una carpeta “data” con una combinación de 3 rasters (combinacion.tif) dentro. Ejecutamos el preprocesado y el resultado debe ser un conjunto de carpetas con las imágenes que contienes mamoas y un conjunto de ficheros json que nos ayudarán a entrenar las redes en formato COCO. Ojo que el fichero shape solo tenía POINTS de entrenamiento, cuando hubiésemos necesitado rectángulos. He generado varios shapes con cuadrados falsos de 30x30, 15x15 y 60x60  metros que potencialmente contendría las mamoas para poder hacer pruebas. Para ello, generemos buffers alrededor de los puntos con valores 7.5,15 y 30 de “radio”.
 
 Las carpetas anteriores nos servirán para entrenar y testear cada arquitectura de redes. El siguiente paso es pasar directamente a trabajar con la librería de detección de objetos.
 
@@ -55,11 +55,11 @@ We are just going to use existing object detection models, and for that we just 
 
     We have already generated two datasets (with bounding boxes of 15x15 and 30x30 pixels) that can be used.
 
-3. Once we have the dataset ready, it is time to configure an existing model so that it can be used with our dataset. All the files related to the model configuration are placed inside the src/mmdetection/configs/ folder.
+3. Once we have the dataset ready, it is time to configure an existing model so that it can be used with our dataset. All the files related to the model configuration are placed inside the src/auxiliar/mmdetection/configs/ folder.
 
-    In our case, we have placed the necessary files in configs/mamoas folder. Basically, we have two config python files, one that will point to the dataset we want to use, and another one that adapts an existing model to our particular problem.
+    In our case, we have placed the necessary files in configs/models folder. Basically, we have two config python files, one that will point to the dataset we want to use, and another one that adapts an existing model to our particular problem.
 
-- Dataset: src/mmdetection/configs/mamoas/mamoas_detection.py. 
+- Dataset: src/mmdetection/configs/mamoas_detection.py. 
 
     This configuration file specifies which dataset is used for the experiment (data_root)
 
@@ -67,7 +67,7 @@ We are just going to use existing object detection models, and for that we just 
 
     Finally, it specifies the train/test dataloader. This part basically points to which annotations .json is used for training and testing. For the cross-validation experiment, we will change these values dinamically when we call the script.
 
-- Model: configs/mamoas/faster_rcnn.py
+- Model: src/mmdetection/configs/models/faster_rcnn.py
 
     In this file we adapt the popular Faster R-CNN model to be used for our problem. This is the config file we are going to call when we use the training/test scripts. At the beggining of the file, you can see that we import other configuration files:
 
@@ -100,6 +100,4 @@ Once you know how to use the basic scripts of the library, you can proceed with 
 
 ### Generación de shape con mamoas candidatas
 
-1. Ejecutamos `src/preprocessing.py` con los parámetros que consideremos oportunos en `src/parameters.py`
-2. Ejecutamos el script `src/trainer.py` para generar un modelo en `src/model` que usaremos para generar el shape con  los resultados.
-3. El último paso es el lanzamiento de la inferencia sobre la imagen global con la que queramos trabajar. En este caso, si hemos trabajado con Laboreiro, lo normal sería probar el modelo en Arcos. Para ello, lanzamos `src/inference.py` con los parámetros adecuados en `src/parameters.py`
+1. Ejecutamos `src/launcher.py` con los parámetros que consideremos oportunos en `src/mmdetection/configs/mamoas_detection.py`
