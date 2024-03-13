@@ -12,7 +12,10 @@ from PIL import Image
 from mmcv.ops import nms
 
 
-def infere(temporal:str, size:int, overlap:int,  model_name:str, model_path:str, model_config_path:str, test_image:str, cuda_device:int, output_shapefile:str, threshold_min:float=0.5, threshold_max:float=1.0, iou_threshold_max:float=0.5, check_point_file:str='last_checkpoint')->None:
+def infere(temporal:str, size:int, overlap:int,  
+           model_name:str, model_path:str, model_config_path:str, 
+           test_image:str, cuda_device:int, 
+           output_shapefile:str, threshold_min:float=0.0, threshold_max:float=1.0, iou_threshold_max:float=0.5, check_point_file:str='last_checkpoint')->None:
 
     # Specify the path to model config and checkpoint file
     config_file = model_config_path + model_name + '.py'
@@ -44,7 +47,8 @@ def infere(temporal:str, size:int, overlap:int,  model_name:str, model_path:str,
                 images.convert_geotiff_to_tiff(path, min_max, path_output)
         else:
             paths = [temporal + '/' + path for path in paths if not '_rgb' in path]
-            paths_no_geo = [path.replace('.tif', "rgb.tif") for path in paths if not '_rgb' in path]
+            paths_no_geo = [path.replace('.tif', "rgb.tif") 
+                            for path in paths if not '_rgb' in path]
             
             
         #Clasifica y genera shapes
@@ -72,7 +76,7 @@ def infere(temporal:str, size:int, overlap:int,  model_name:str, model_path:str,
 
                 shapes = [(transform.xy(src.transform, bbox[1], bbox[0]) 
                             + transform.xy(src.transform, bbox[3], bbox[2]),
-                            score) for score, bbox, label in zip(scores, bboxes, labels) if label == 1]
+                            score) for score, bbox, label in zip(scores, bboxes, labels)]
                 shapes = [(box(bbox[0], bbox[1], bbox[2], bbox[3]), score) for bbox, score in shapes if threshold_max >= score >= threshold_min]
                 
                 if len(shapes)>0:

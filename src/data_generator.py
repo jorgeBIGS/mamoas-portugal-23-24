@@ -141,6 +141,11 @@ def check_area(tile, bbox):
         result = 0
     return result
 
+def difference(dataset:str, true_data:str)->gpd.GeoDataFrame:
+    shp_1 = gpd.GeoDataFrame(dataset)
+    shp_2 = gpd.GeoDataFrame(true_data)
+    return shp_1.difference(shp_2)
+    
 def refine(training, true_data):
     # Cargar el shapefile que contiene los elementos para la actualización
     # shp_actualizar = gpd.read_file(true_data)

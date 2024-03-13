@@ -18,7 +18,7 @@ def train_models(models: list[str], training_data_root:str,validation_data_root:
 
 def apply_models(models: list[str], model_config_root:str, model_path:str, 
          test_image: str, temporal:str, size:int, overlap:int, shapes_output: str, 
-         score_min:float=0.5, score_max:float = 1.0, iou_threshold:float=0.05)->None:
+         score_min:float=0.0, score_max:float = 1.0, iou_threshold:float=1.0)->None:
     
     shutil.rmtree(temporal, ignore_errors=True)
     os.makedirs(temporal, exist_ok=True)

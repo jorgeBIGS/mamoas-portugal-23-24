@@ -3,17 +3,18 @@ SHAPES_OUTPUT_ROOT = 'data/shapes'
 
 # Parámetros generación datasets
 IMAGE = ORIGINALES + '/COMB-Laboreiro.tif' 
-OUTPUT_DATA_ROOT= 'data/mamoas-laboreiro/'
+OUTPUT_DATA_ROOT= 'data/mamoas-laboreiro/' 
+OUTPUT_DATA_ROOT_2= 'data/mamoas-laboreiro-2/'
 TRUE_DATA = ORIGINALES + '/Mamoas-Laboreiro.shp'
 OUTPUT_SHAPE = SHAPES_OUTPUT_ROOT + '/Mamoas-Laboreiro.shp' 
 '''IMAGE = ORIGINALES + '/COMB-Arcos_2.tif'
 OUTPUT_DATA_ROOT= 'data/mamoas-arcos/'
 OUTPUT_SHAPE = SHAPES_OUTPUT_ROOT + '/Mamoas-Arcos.shp'
-TRUE_DATA = ORIGINALES + '/Mamoas-Arcos.shp' '''
+TRUE_DATA = ORIGINALES + '/Mamoas-Arcos.shp' 
 IMAGE = ORIGINALES + '/COMB-Laboreiro-Arcos.tif'
 OUTPUT_DATA_ROOT= 'data/mamoas-laboreiro-arcos/'
 OUTPUT_SHAPE = SHAPES_OUTPUT_ROOT + '/Mamoas-Laboreiro-Arcos.shp'
-TRUE_DATA = ORIGINALES + '/Mamoas-Arcos.shp'
+TRUE_DATA = ORIGINALES + '/Mamoas-Arcos.shp' '''
 
 BUFFER = 15
 SIZE = 200
@@ -38,12 +39,13 @@ MODEL_PATH = 'data/model/'
 TEMPORAL = 'data/tmp'
 SCORES = [0.5]
 TRAINING_DATA_ROOT= 'data/mamoas-laboreiro/'
-TEST_DATA_ROOT= 'data/mamoas-arcos/'
 VALIDATION_DATA_ROOT= 'data/mamoas-laboreiro-arcos/'
+TEST_DATA_ROOT= 'data/mamoas-arcos/'
+
+TRAINING_IMAGE = 'data/original/COMB-Laboreiro.tif'
 
 #parámetros de inference 
-TEST_IMAGE = 'data/original/COMB-Laboreiro.tif'
-
+TEST_IMAGE = 'data/original/COMB-Arcos.tif'
 
 dataset_type = 'CocoDataset'
 metainfo = {
