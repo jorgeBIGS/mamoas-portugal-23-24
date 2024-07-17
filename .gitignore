@@ -6,6 +6,4 @@ mypy-config.ini
 .vscode/*
 work_dirs/*
 tools/*
-src/__pycache__/*
-src/mmdetection/configs/__pycache__/*
-src/auxiliar/__pycache__/*
+__pycache__

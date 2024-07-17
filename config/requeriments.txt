@@ -10,3 +10,4 @@ openmim
 pygad
 torch_topological
 pyssl
+lightning

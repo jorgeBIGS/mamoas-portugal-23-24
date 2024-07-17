@@ -11,9 +11,8 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm
-from torchvision import datasets
+
 from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
 
 from torch_topological.datasets import Spheres
 
@@ -75,15 +74,15 @@ class TopologicalAutoencoder(torch.nn.Module):
     This class uses another autoencoder model and imbues it with an
     additional topology-based loss term.
     """
-    def __init__(self, model, dimension = 0, norma_exponent = 2, lam=1.0):
+    def __init__(self, model, lam=1.0):
         super().__init__()
 
         self.lam = lam
         self.model = model
-        self.loss = SignatureLoss(p=norma_exponent)
+        self.loss = SignatureLoss(p=2)
 
         # TODO: Make dimensionality configurable
-        self.vr = VietorisRipsComplex(dim=dimension)
+        self.vr = VietorisRipsComplex(dim=0)
 
     def forward(self, x):
         z = self.model.encode(x)
@@ -99,7 +98,7 @@ class TopologicalAutoencoder(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    '''# We first have to create a data set. This follows the original
+    # We first have to create a data set. This follows the original
     # publication by Moor et al. by introducing a simple 'manifold'
     # data set consisting of multiple spheres.
     n_spheres = 11
@@ -112,44 +111,12 @@ if __name__ == '__main__':
         drop_last=True
     )
 
-    # Evaluate the autoencoder on a new instance of the data set.
-    data_set = Spheres(
-        train=False,
-        n_samples=2000,
-        n_spheres=n_spheres,
-    )
-
-    test_loader = DataLoader(
-            data_set,
-            shuffle=False,
-            batch_size=len(data_set)
-    )'''
-    # convert data to torch.FloatTensor
-    transform = transforms.ToTensor()
-
-    # load the training and test datasets
-    train_data = datasets.MNIST(root='data', train=True,
-                                    download=True, transform=transform)
-    test_data = datasets.MNIST(root='data', train=False,
-                                    download=True, transform=transform)
-
-    # Create training and test dataloaders
-
-    # number of subprocesses to use for data loading
-    num_workers = 0
-    # how many samples per batch to load
-    batch_size = 20
-
-    # prepare data loaders
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, num_workers=num_workers)
-    test_loader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, num_workers=num_workers)
-
     # Let's set up the two models that we are training. Note that in
     # a real application, you would have a more complicated training
     # setup, potentially with early stopping etc. This training loop
     # is merely to be seen as a proof of concept.
-    model = LinearAutoencoder(input_dim=28)
-    topo_model = TopologicalAutoencoder(model, dimension = 2, lam=10)
+    model = LinearAutoencoder(input_dim=data_set.dimension)
+    topo_model = TopologicalAutoencoder(model, lam=10)
 
     optimizer = optim.Adam(topo_model.parameters(), lr=1e-3)
 
@@ -169,22 +136,33 @@ if __name__ == '__main__':
 
         progress.set_postfix(loss=loss.item())
 
-    
+    # Evaluate the autoencoder on a new instance of the data set.
+    data_set = Spheres(
+        train=False,
+        n_samples=2000,
+        n_spheres=n_spheres,
+    )
+
+    test_loader = DataLoader(
+            data_set,
+            shuffle=False,
+            batch_size=len(data_set)
+    )
 
     X, y = next(iter(test_loader))
     Z = topo_model.model.encode(X).detach().numpy()
 
     plt.scatter(
-        X[:, 0], X[:, 1],
+        Z[:, 0], Z[:, 1],
         c=y,
         cmap='Set1',
         marker='o',
         alpha=0.9,
     )
     plt.show()
-    
+
     plt.scatter(
-        Z[:, 0], Z[:, 1],
+        X[:, 0], X[:, 1],
         c=y,
         cmap='Set1',
         marker='o',
